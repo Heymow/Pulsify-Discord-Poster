@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "postinstall": "playwright install chromium",
     "test": "jest",
     "dev": "node server.js"
   },
