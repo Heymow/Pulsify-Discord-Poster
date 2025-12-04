@@ -104,6 +104,9 @@ class DiscordService {
 
   async postMessageToChannel(page, message, isEveryone) {
     try {
+      // Check for NSFW popup first
+      await this.handleNSFWConfirmation(page);
+
       // logger.info("Waiting for textbox..."); // Reduce noise
       await page.waitForSelector(selectors.textbox, { state: "visible", timeout: 20000 });
 
@@ -155,6 +158,23 @@ class DiscordService {
     }
   }
 
+  async handleNSFWConfirmation(page) {
+    try {
+      const nsfwButton = await page.waitForSelector(selectors.nsfwContinueButton, {
+        timeout: 2000,
+        state: "visible",
+      });
+
+      if (nsfwButton) {
+        logger.info("NSFW/Age verification popup detected. Clicking continue...");
+        await nsfwButton.click();
+        await page.waitForTimeout(1000); // Wait for transition
+      }
+    } catch (popupErr) {
+      // No popup, normal behavior
+    }
+  }
+
   async handleEveryoneConfirmation(page) {
     try {
       const confirmButton = await page.waitForSelector(selectors.sendNowButton, {
@@ -187,45 +207,42 @@ class DiscordService {
 
       await this.postMessageToChannel(page, message, isEveryone);
       
-      // Auto-detect name if missing or default
-      try {
-        if (url.includes("/@me/")) {
-          // DM Name Detection
-          const dmNameEl = await page.$(selectors.dmName);
-          if (dmNameEl) {
-            const dmName = await dmNameEl.textContent();
-            if (dmName) {
-              const fullName = `DM: ${dmName.trim()}`;
-              if (!currentName || currentName === "Unnamed Channel") {
-                logger.info(`Auto-detected name for ${url}: ${fullName}`);
-                channelService.updateChannel(url, url, fullName);
-              }
-            }
-          }
-        } else {
-          // Server Channel Name Detection
-          const guildNameEl = await page.$(selectors.guildName);
-          const channelNameEl = await page.$(selectors.channelName);
-          
-          if (guildNameEl && channelNameEl) {
-            const guildName = await guildNameEl.textContent();
-            const channelName = await channelNameEl.textContent();
-            
-            if (guildName && channelName) {
-              const fullName = `${guildName.trim()}: ${channelName.trim()}`;
-              
-              // Only update if current name is "Unnamed Channel" or empty
-              if (!currentName || currentName === "Unnamed Channel") {
-                logger.info(`Auto-detected name for ${url}: ${fullName}`);
-                channelService.updateChannel(url, url, fullName);
-              }
-            }
-          }
+        // Auto-detect name if missing or default
+        // We try to detect name regardless of URL type, as DMs and Servers share similar structures sometimes
+        try {
+           let fullName = null;
+
+           // Try DM detection first
+           const dmNameEl = await page.$(selectors.dmName);
+           if (dmNameEl) {
+             const dmName = await dmNameEl.textContent();
+             if (dmName && dmName.trim().length > 0) {
+               fullName = `DM: ${dmName.trim()}`;
+             }
+           }
+
+           // If not DM, try Server detection
+           if (!fullName) {
+             const guildNameEl = await page.$(selectors.guildName);
+             const channelNameEl = await page.$(selectors.channelName);
+             
+             if (guildNameEl && channelNameEl) {
+               const guildName = await guildNameEl.textContent();
+               const channelName = await channelNameEl.textContent();
+               
+               if (guildName && channelName) {
+                 fullName = `${guildName.trim()}: ${channelName.trim()}`;
+               }
+             }
+           }
+
+           if (fullName && (!currentName || currentName === "Unnamed Channel")) {
+              logger.info(`Auto-detected name for ${url}: ${fullName}`);
+              channelService.updateChannel(url, url, fullName);
+           }
+        } catch (nameErr) {
+          // logger.debug(`Failed to auto-detect name: ${nameErr.message}`);
         }
-      } catch (nameErr) {
-        // Ignore name detection errors
-        // logger.debug(`Failed to auto-detect name: ${nameErr.message}`);
-      }
 
       return true;
     } catch (err) {
