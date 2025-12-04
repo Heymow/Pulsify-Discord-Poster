@@ -34,6 +34,7 @@ const Channels = () => {
             const data = await getChannels();
             setChannels(data);
             setError(null);
+            setLoading(false);
         } catch (err) {
             console.error(err);
             if (retries > 0) {
@@ -42,8 +43,7 @@ const Channels = () => {
                 return; // Don't stop loading yet
             }
             setError("Failed to load channels. Is the backend running?");
-        } finally {
-            if (retries === 0) setLoading(false);
+            setLoading(false);
         }
     };
 
