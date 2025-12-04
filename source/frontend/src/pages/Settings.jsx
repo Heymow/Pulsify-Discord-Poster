@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
-import { checkSession, logout, triggerDiscordLogin } from '../api';
+import { triggerDiscordLogin, logout } from '../api';
 import { LogIn, LogOut, CheckCircle, AlertCircle, Loader2, Shield, Key } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
+import { useAuth } from '../context/AuthContext';
 
 const Settings = () => {
+    const { isConnected, setIsConnected, verifySession } = useAuth();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null);
-
-    const [isConnected, setIsConnected] = useState(false);
-
-    React.useEffect(() => {
-        checkSessionStatus();
-    }, []);
-
-    const checkSessionStatus = async () => {
-        const res = await checkSession();
-        setIsConnected(res.connected);
-    };
 
     const handleLogin = async () => {
         setLoading(true);
@@ -26,6 +17,7 @@ const Settings = () => {
             const res = await triggerDiscordLogin();
             setStatus({ type: 'success', message: res.message || 'Session saved!' });
             setIsConnected(true);
+            await verifySession(); // Double check with backend
         } catch (err) {
             setStatus({ type: 'error', message: err.message || 'Login failed' });
         } finally {
