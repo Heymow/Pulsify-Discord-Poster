@@ -19,40 +19,41 @@ echo.
 :: 1. Check for Node.js
 echo [1/4] Checking for Node.js...
 node -v >nul 2>&1
-if %errorlevel% neq 0 (
-    echo Node.js is NOT installed.
-    echo.
-    echo Attempting to install Node.js using Chocolatey...
-    
-    :: Check for Chocolatey
-    choco -v >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo Chocolatey not found. Installing Chocolatey...
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
-        if !errorlevel! neq 0 (
-            echo Failed to install Chocolatey. Aborting.
-            pause
-            exit /b 1
-        )
-    )
+if %errorlevel% equ 0 goto :NodeInstalled
 
-    :: Install Node.js
-    echo Installing Node.js...
-    choco install nodejs --version="25.2.1" -y
-    if !errorlevel! neq 0 (
-        echo Failed to install Node.js. Aborting.
-        pause
-        exit /b 1
-    )
-    
-    echo.
-    echo Node.js installed successfully!
-    echo Please RESTART this script to continue with dependency installation.
-    echo (Environment variables need to refresh)
+echo Node.js is NOT installed.
+echo.
+echo Attempting to install Node.js using Chocolatey...
+
+:: Check for Chocolatey
+choco -v >nul 2>&1
+if %errorlevel% equ 0 goto :InstallNode
+
+echo Chocolatey not found. Installing Chocolatey...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))"
+if %errorlevel% neq 0 (
+    echo Failed to install Chocolatey. Aborting.
     pause
-    exit /b 0
+    exit /b 1
 )
 
+:InstallNode
+echo Installing Node.js...
+choco install nodejs --version="25.2.1" -y
+if %errorlevel% neq 0 (
+    echo Failed to install Node.js. Aborting.
+    pause
+    exit /b 1
+)
+
+echo.
+echo Node.js installed successfully!
+echo Please RESTART this script to continue with dependency installation.
+echo (Environment variables need to refresh)
+pause
+exit /b 0
+
+:NodeInstalled
 echo Node.js is present:
 node -v
 echo.
