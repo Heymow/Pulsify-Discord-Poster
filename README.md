@@ -18,7 +18,7 @@ A tool to automate Discord channel posting.
 1. Run `setup.bat`
    - This script will automatically request Admin privileges to check/install Node.js if missing.
    - It will install all dependencies in the new `source` directory.
-2. Configure your `.env` file in `source\backend`.
+2. (Optional) Configure your `.env` file in `source\backend`. The application works with default settings.
 3. Run `start.bat` to launch the application.
 
 ### Linux / Mac
@@ -32,7 +32,7 @@ A tool to automate Discord channel posting.
    chmod +x setup.sh
    ./setup.sh
    ```
-4. Configure your `.env` file in `source/backend`.
+4. (Optional) Configure your `.env` file in `source/backend`. The application works with default settings.
 5. Run start:
    ```bash
    chmod +x start.sh
