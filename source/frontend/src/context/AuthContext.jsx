@@ -27,8 +27,10 @@ export const AuthProvider = ({ children }) => {
     const triggerAuthAlert = () => {
         if (!isConnected) {
             setShowAuthAlert(true);
-            // Hide alert after 5 seconds automatically? Or keep it until they go to settings?
-            // User didn't specify, but auto-hide is nice. Let's keep it persistent until they click it or go to settings.
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                setShowAuthAlert(false);
+            }, 5000);
         }
     };
 
