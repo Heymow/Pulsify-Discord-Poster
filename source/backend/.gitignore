@@ -1,0 +1,34 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.vscode/
+.idea/
+*.iml
+
+#discord session files
+discord-session.json
+
+# channels link files
+channel-urls.js
+everyone-channels.js
+
+# Data files
+channels.json
+queue.json

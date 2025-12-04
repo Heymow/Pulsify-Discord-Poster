@@ -1,17 +1,18 @@
 @echo off
-echo Starting Discord Poster...
+echo ==========================================
+echo        Starting Discord Poster
+echo ==========================================
 echo.
-echo Backend starting on http://localhost:5000
-echo Frontend starting on http://localhost:5173
+echo Backend: http://localhost:5000
+echo Frontend: http://localhost:5173
 echo.
-echo Press Ctrl+C in each window to stop
+echo [INFO] Press Ctrl+C in the popup windows to stop servers.
 echo.
 
-start "Discord Poster - Backend" cmd /k "cd backend && npm run dev"
+start "Discord Poster - Backend" cmd /k "cd source\backend && npm run dev"
 timeout /t 2 /nobreak > nul
-start "Discord Poster - Frontend" cmd /k "cd frontend && npm run dev"
+start "Discord Poster - Frontend" cmd /k "cd source\frontend && npm run dev"
 
-echo.
-echo Both servers are starting in separate windows...
+echo Servers launched in background windows.
 echo.
 pause
