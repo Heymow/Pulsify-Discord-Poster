@@ -15,4 +15,4 @@ start "Discord Poster - Frontend" cmd /k "cd source\frontend && npm run dev"
 
 echo Servers launched in background windows.
 echo.
-pause
+exit
