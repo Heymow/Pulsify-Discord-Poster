@@ -15,4 +15,6 @@ start "Discord Poster - Frontend" cmd /k "cd source\frontend && npm run dev"
 
 echo Servers launched in background windows.
 echo.
+timeout /t 5 /nobreak > nul
+start http://localhost:5173
 exit
