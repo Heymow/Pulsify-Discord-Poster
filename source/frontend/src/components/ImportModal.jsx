@@ -133,7 +133,7 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess, currentChannels }) => {
                                 <Upload className="w-6 h-6 text-secondary" />
                                 Import Channels
                             </h2>
-                            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors cursor-pointer">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -145,8 +145,8 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess, currentChannels }) => {
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                                 className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all group ${isDragging
-                                        ? 'border-secondary bg-secondary/10'
-                                        : 'border-white/20 hover:border-secondary/50 hover:bg-white/5'
+                                    ? 'border-secondary bg-secondary/10'
+                                    : 'border-white/20 hover:border-secondary/50 hover:bg-white/5'
                                     }`}
                             >
                                 <FileJson className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-secondary' : 'text-gray-500 group-hover:text-secondary'}`} />
@@ -267,7 +267,7 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess, currentChannels }) => {
                                 </div>
                                 <button
                                     onClick={() => { reset(); onClose(); }}
-                                    className="mt-6 text-gray-400 hover:text-white text-sm underline"
+                                    className="mt-6 w-full py-3 rounded-xl font-bold text-lg uppercase tracking-widest bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer hover:scale-[1.02]"
                                 >
                                     Close
                                 </button>
