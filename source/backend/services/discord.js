@@ -111,7 +111,15 @@ class DiscordService {
       const textbox = await page.$(selectors.textbox);
       await textbox.focus();
 
-      await this.typeLikeHuman(page, selectors.textbox, fullMessage);
+      const parts = fullMessage.split('\n');
+      for (let i = 0; i < parts.length; i++) {
+          await this.typeLikeHuman(page, selectors.textbox, parts[i]);
+          if (i < parts.length - 1) {
+              await page.keyboard.down('Shift');
+              await page.keyboard.press('Enter');
+              await page.keyboard.up('Shift');
+          }
+      }
       
       const textContent = await textbox.textContent();
       if (!textContent || !textContent.includes(message.substring(0, 20))) {
