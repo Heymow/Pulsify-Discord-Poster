@@ -13,8 +13,29 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess, currentChannels }) => {
     const [error, setError] = useState(null);
     const fileInputRef = useRef(null);
 
+    const [isDragging, setIsDragging] = useState(false);
+
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
+        if (selectedFile) {
+            parseFile(selectedFile);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const selectedFile = e.dataTransfer.files[0];
         if (selectedFile) {
             parseFile(selectedFile);
         }
@@ -120,10 +141,18 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess, currentChannels }) => {
                         {!parsedData && !result && (
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className="border-2 border-dashed border-white/20 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:border-secondary/50 hover:bg-white/5 transition-all group"
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all group ${isDragging
+                                        ? 'border-secondary bg-secondary/10'
+                                        : 'border-white/20 hover:border-secondary/50 hover:bg-white/5'
+                                    }`}
                             >
-                                <FileJson className="w-12 h-12 text-gray-500 group-hover:text-secondary mb-4 transition-colors" />
-                                <p className="text-gray-400 group-hover:text-white font-medium">Click to upload JSON</p>
+                                <FileJson className={`w-12 h-12 mb-4 transition-colors ${isDragging ? 'text-secondary' : 'text-gray-500 group-hover:text-secondary'}`} />
+                                <p className={`font-medium ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
+                                    {isDragging ? 'Drop JSON file here' : 'Click or drop JSON to upload'}
+                                </p>
                                 <input
                                     type="file"
                                     ref={fileInputRef}
