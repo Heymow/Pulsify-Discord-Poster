@@ -39,7 +39,7 @@ const Settings = () => {
             await logout();
             setIsConnected(false);
             setStatus({ type: 'success', message: 'Disconnected successfully' });
-        } catch (err) {
+        } catch {
             setStatus({ type: 'error', message: 'Logout failed' });
         } finally {
             setLoading(false);

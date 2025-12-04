@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getChannels, addChannel, removeChannel, toggleEveryone } from '../api';
-import { Trash2, Plus, Hash, Volume2, Search, AlertCircle, Download, Upload } from 'lucide-react';
+import { Trash2, Plus, Hash, Search, AlertCircle, Download, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import ExportModal from '../components/ExportModal';
@@ -199,95 +199,96 @@ const Channels = () => {
                                 </button>
                             </div>
                         </div>
-                </div>
-                {error && (
-                    <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm"
-                    >
-                        <AlertCircle className="w-4 h-4" />
-                        {error}
-                    </motion.div>
-                )}
-            </GlowCard>
-
-            {/* List */}
-            <div className="grid gap-3">
-                <AnimatePresence mode="popLayout">
-                    {filteredList.length === 0 && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="text-center text-gray-500 py-20 font-light"
-                        >
-                            No signals detected in this sector.
-                        </motion.div>
-                    )}
-
-                    {filteredList.map((channel, index) => {
-                        const isEveryone = everyoneList.includes(channel.url);
-                        const hasFailures = channel.failures > 0;
-
-                        return (
+                        {error && (
                             <motion.div
-                                key={channel.url}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ delay: index * 0.03 }}
-                                className={`group relative bg-white/5 hover:bg-white/10 border p-4 rounded-xl flex items-center justify-between transition-all backdrop-blur-sm ${hasFailures
-                                    ? 'border-red-500/50 shadow-[0_0_15px_-5px_rgba(239,68,68,0.5)]'
-                                    : 'border-white/5 hover:border-white/20'
-                                    }`}
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm"
                             >
-                                <div className="flex items-center gap-4 overflow-hidden">
-                                    <div className={`p-2 rounded-lg ${isEveryone ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-800 text-gray-500'}`}>
-                                        <Hash className="w-5 h-5" />
-                                    </div>
-                                    <div className="flex flex-col overflow-hidden">
-                                        <div className="text-white font-bold truncate">
-                                            {channel.name}
-                                        </div>
-                                        <div className="truncate text-xs text-gray-500 font-mono group-hover:text-gray-300 transition-colors">
-                                            {channel.url}
-                                        </div>
-                                    </div>
-
-                                    {hasFailures && (
-                                        <div className="ml-2 px-2 py-0.5 bg-red-500/20 text-red-500 text-xs font-bold rounded border border-red-500/30 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            {channel.failures} failures
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
-                                    <button
-                                        onClick={() => handleToggleEveryone(channel.url)}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${isEveryone
-                                            ? 'bg-yellow-500 text-black shadow-[0_0_15px_-3px_rgba(234,179,8,0.5)]'
-                                            : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                                            } cursor-pointer`}
-                                    >
-                                        {isEveryone ? '@everyone' : 'Standard'}
-                                    </button>
-
-                                    <button
-                                        onClick={() => handleRemove(activeType, channel.url)}
-                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </button>
-                                </div>
+                                <AlertCircle className="w-4 h-4" />
+                                {error}
                             </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
+                        )}
+                    </GlowCard>
+
+                    {/* List */}
+                    <div className="grid gap-3">
+                        <AnimatePresence mode="popLayout">
+                            {filteredList.length === 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="text-center text-gray-500 py-20 font-light"
+                                >
+                                    No signals detected in this sector.
+                                </motion.div>
+                            )}
+
+                            {filteredList.map((channel, index) => {
+                                const isEveryone = everyoneList.includes(channel.url);
+                                const hasFailures = channel.failures > 0;
+
+                                return (
+                                    <motion.div
+                                        key={channel.url}
+                                        layout
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.9 }}
+                                        transition={{ delay: index * 0.03 }}
+                                        className={`group relative bg-white/5 hover:bg-white/10 border p-4 rounded-xl flex items-center justify-between transition-all backdrop-blur-sm ${hasFailures
+                                            ? 'border-red-500/50 shadow-[0_0_15px_-5px_rgba(239,68,68,0.5)]'
+                                            : 'border-white/5 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-4 overflow-hidden">
+                                            <div className={`p-2 rounded-lg ${isEveryone ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-800 text-gray-500'}`}>
+                                                <Hash className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex flex-col overflow-hidden">
+                                                <div className="text-white font-bold truncate">
+                                                    {channel.name}
+                                                </div>
+                                                <div className="truncate text-xs text-gray-500 font-mono group-hover:text-gray-300 transition-colors">
+                                                    {channel.url}
+                                                </div>
+                                            </div>
+
+                                            {hasFailures && (
+                                                <div className="ml-2 px-2 py-0.5 bg-red-500/20 text-red-500 text-xs font-bold rounded border border-red-500/30 flex items-center gap-1">
+                                                    <AlertCircle className="w-3 h-3" />
+                                                    {channel.failures} failures
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
+                                            <button
+                                                onClick={() => handleToggleEveryone(channel.url)}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${isEveryone
+                                                    ? 'bg-yellow-500 text-black shadow-[0_0_15px_-3px_rgba(234,179,8,0.5)]'
+                                                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                                                    } cursor-pointer`}
+                                            >
+                                                {isEveryone ? '@everyone' : 'Standard'}
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleRemove(activeType, channel.url)}
+                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </div>
+                </div>
             </div>
-        </div >
+        </div>
     );
 };
 

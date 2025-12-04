@@ -5,7 +5,6 @@ import GlowCard from './GlowCard';
 import { importChannels } from '../api';
 
 const ImportModal = ({ isOpen, onClose, onImportSuccess }) => {
-    const [file, setFile] = useState(null);
     const [parsedData, setParsedData] = useState(null);
     const [selectedCategories, setSelectedCategories] = useState({});
     const [loading, setLoading] = useState(false);
@@ -16,7 +15,6 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess }) => {
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
         if (selectedFile) {
-            setFile(selectedFile);
             parseFile(selectedFile);
         }
     };
@@ -32,7 +30,7 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess }) => {
                 setSelectedCategories(initialSelection);
                 setError(null);
                 setResult(null);
-            } catch (err) {
+            } catch {
                 setError("Invalid JSON file");
                 setParsedData(null);
             }
@@ -75,7 +73,6 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess }) => {
         });
 
         if (invalidCount > 0) {
-            // Optional: Notify user about skipped invalid URLs
             console.warn(`Skipped ${invalidCount} invalid URLs during import.`);
         }
 
@@ -83,15 +80,14 @@ const ImportModal = ({ isOpen, onClose, onImportSuccess }) => {
             const stats = await importChannels(dataToImport);
             setResult(stats);
             if (onImportSuccess) onImportSuccess();
-        } catch (err) {
-            setError(err.message || "Import failed");
+        } catch {
+            setError("Import failed");
         } finally {
             setLoading(false);
         }
     };
 
     const reset = () => {
-        setFile(null);
         setParsedData(null);
         setResult(null);
         setError(null);

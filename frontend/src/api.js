@@ -77,13 +77,14 @@ export const triggerDiscordLogin = async () => {
   // I need to add a route for this in backend!
   const response = await api.post('/discord/login');
   return response.data;
+
 };
 
 export const checkSession = async () => {
   try {
     const response = await api.get('/discord/session');
     return response.data;
-  } catch (err) {
+  } catch {
     return { connected: false };
   }
 };
