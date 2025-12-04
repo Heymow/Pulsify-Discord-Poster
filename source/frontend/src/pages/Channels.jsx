@@ -28,14 +28,22 @@ const Channels = () => {
         fetchChannels();
     }, []);
 
-    const fetchChannels = async () => {
+    const fetchChannels = async (retries = 3, delay = 1000) => {
         try {
+            setLoading(true);
             const data = await getChannels();
             setChannels(data);
+            setError(null);
         } catch (err) {
             console.error(err);
+            if (retries > 0) {
+                console.log(`Retrying fetch... (${retries} attempts left)`);
+                setTimeout(() => fetchChannels(retries - 1, delay * 2), delay);
+                return; // Don't stop loading yet
+            }
+            setError("Failed to load channels. Is the backend running?");
         } finally {
-            setLoading(false);
+            if (retries === 0) setLoading(false);
         }
     };
 
@@ -332,10 +340,18 @@ const Channels = () => {
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-red-400 text-sm"
+                                className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-between gap-2 text-red-400 text-sm"
                             >
-                                <AlertCircle className="w-4 h-4" />
-                                {error}
+                                <div className="flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4" />
+                                    {error}
+                                </div>
+                                <button
+                                    onClick={() => fetchChannels()}
+                                    className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded text-xs font-bold transition-colors"
+                                >
+                                    Retry
+                                </button>
                             </motion.div>
                         )}
                     </GlowCard>

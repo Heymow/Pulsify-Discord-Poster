@@ -10,7 +10,7 @@ echo [INFO] Press Ctrl+C in the popup windows to stop servers.
 echo.
 
 start "Discord Poster - Backend" cmd /k "cd source\backend && npm run dev"
-timeout /t 2 /nobreak > nul
+timeout /t 5 /nobreak > nul
 start "Discord Poster - Frontend" cmd /k "cd source\frontend && npm run dev"
 
 echo Servers launched in background windows.
