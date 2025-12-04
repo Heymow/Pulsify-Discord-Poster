@@ -11,7 +11,8 @@ const api = axios.create({
     // For now, let's assume backend auth is disabled for localhost or handled via proxy.
     // If we need auth:
     // 'Authorization': 'Basic ' + btoa('username:password')
-  }
+  },
+  timeout: 5000 // 5 seconds timeout
 });
 
 // Since we kept auth in backend, we need to send credentials.
