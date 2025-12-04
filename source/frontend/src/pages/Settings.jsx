@@ -64,7 +64,6 @@ const Settings = () => {
                                 <ul className="list-disc list-inside space-y-1 opacity-70">
                                     <li>Opens secure browser window</li>
                                     <li>Captures session cookie</li>
-                                    <li>Captures session cookie</li>
                                     <li className="pl-0">Encrypted local storage<br /><span className="text-xs opacity-70 ml-4">(Privacy: stored only on your machine)</span></li>
                                 </ul>
                             </div>
