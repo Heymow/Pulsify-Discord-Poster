@@ -4,6 +4,7 @@ import { Send, Terminal, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import { useAuth } from '../context/AuthContext';
+import { useDashboard } from '../context/DashboardContext';
 
 const POST_TYPES = [
     "Suno link",
@@ -21,10 +22,8 @@ const POST_TYPES = [
 
 const Dashboard = () => {
     const { isConnected, triggerAuthAlert } = useAuth();
-    const [message, setMessage] = useState('');
-    const [postType, setPostType] = useState('Suno link');
+    const { message, setMessage, postType, setPostType, logs, setLogs } = useDashboard();
     const [loading, setLoading] = useState(false);
-    const [logs, setLogs] = useState([]);
     const logsEndRef = useRef(null);
 
     useEffect(() => {

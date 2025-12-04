@@ -55,7 +55,7 @@ const Layout = ({ children }) => {
                                 const Icon = item.icon;
                                 const isActive = location.pathname === item.path;
                                 const isSettings = item.path === '/settings';
-                                const needsAttention = isSettings && !isConnected;
+                                const needsAttention = isSettings && !isConnected && showAuthAlert;
 
                                 return (
                                     <Link
