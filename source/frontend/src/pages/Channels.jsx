@@ -6,6 +6,7 @@ import GlowCard from '../components/GlowCard';
 import ExportModal from '../components/ExportModal';
 import ImportModal from '../components/ImportModal';
 import TypeManagerModal from '../components/TypeManagerModal';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const Channels = () => {
     const [channels, setChannels] = useState({});
@@ -32,8 +33,17 @@ const Channels = () => {
         try {
             if (showLoader) setLoading(true);
             const data = await getChannels();
-            setChannels(data);
-            setError(null);
+            if (data && typeof data === 'object') {
+                setChannels(data);
+                setError(null);
+            } else {
+                console.error("Invalid channels data received:", data);
+                // Don't clear channels if update failed, but maybe show error?
+                // If it's the first load, we might want to retry.
+                if (Object.keys(channels).length === 0) {
+                    throw new Error("Invalid data received");
+                }
+            }
             setLoading(false);
         } catch (err) {
             console.error(err);
@@ -164,8 +174,21 @@ const Channels = () => {
         }
     };
 
+    // Safe derivation of lists
+    const safeChannels = channels || {};
+    const channelTypes = Object.keys(safeChannels).filter(k => k !== 'everyone');
+    // Ensure DM is always in the list if not present
+    if (!channelTypes.includes('DM')) channelTypes.push('DM');
+
+    const everyoneList = (safeChannels.everyone || []).map(c => c.url);
+    const currentList = safeChannels[activeType] || [];
+    const filteredList = Array.isArray(currentList) ? currentList.filter(c =>
+        (c.name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (c.url || '').toLowerCase().includes(search.toLowerCase())
+    ) : [];
+
     return (
-        <>
+        <ErrorBoundary>
             <ExportModal
                 isOpen={showExport}
                 onClose={() => setShowExport(false)}
@@ -501,7 +524,7 @@ const Channels = () => {
                     </div>
                 </div>
             )}
-        </>
+        </ErrorBoundary>
     );
 };
 
