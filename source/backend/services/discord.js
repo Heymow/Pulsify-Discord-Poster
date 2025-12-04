@@ -279,13 +279,19 @@ class DiscordService {
         const chunk = channelsList.slice(i, i + this.CONCURRENT_TABS);
         logger.info(`Processing chunk ${Math.floor(i / this.CONCURRENT_TABS) + 1}/${Math.ceil(channelsList.length / this.CONCURRENT_TABS)}`);
 
-        const promises = chunk.map(channel => {
+        const promises = [];
+        for (const channel of chunk) {
           // Channel is now an object { name, url, failures }
           const url = channel.url;
           const name = channel.name;
           const isEveryone = everyoneChannels.has(url);
-          return this.processChannel(context, url, message, isEveryone, name);
-        });
+          
+          promises.push(this.processChannel(context, url, message, isEveryone, name));
+
+          // Random delay between 0.5s and 1.5s to look more human
+          const tabDelay = 500 + Math.random() * 1000;
+          await new Promise(r => setTimeout(r, tabDelay));
+        }
 
         const results = await Promise.all(promises);
         
