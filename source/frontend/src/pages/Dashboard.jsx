@@ -3,6 +3,7 @@ import { postMessage } from '../api';
 import { Send, Terminal, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
+import { useAuth } from '../context/AuthContext';
 
 const POST_TYPES = [
     "Suno link",
@@ -19,6 +20,7 @@ const POST_TYPES = [
 ];
 
 const Dashboard = () => {
+    const { isConnected, triggerAuthAlert } = useAuth();
     const [message, setMessage] = useState('');
     const [postType, setPostType] = useState('Suno link');
     const [loading, setLoading] = useState(false);
@@ -40,6 +42,13 @@ const Dashboard = () => {
 
     const handlePost = async () => {
         if (!message.trim()) return;
+
+        if (!isConnected) {
+            triggerAuthAlert();
+            setLogs(prev => [...prev, { message: "⚠️ Authentication required. Please connect your Discord account in Settings.", type: "warning", timestamp: new Date().toISOString() }]);
+            return;
+        }
+
         setLoading(true);
         setLogs(prev => [...prev, { message: "🚀 Sending job to backend...", type: "info", timestamp: new Date().toISOString() }]);
         try {

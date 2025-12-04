@@ -1,31 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, List, Settings, Music, Disc, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Background from './Background';
-import { checkSession } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 const Layout = ({ children }) => {
     const location = useLocation();
-    const [isConnected, setIsConnected] = useState(true); // Default to true to avoid flash
-    const [showAuthAlert, setShowAuthAlert] = useState(false);
-
-    useEffect(() => {
-        const verifySession = async () => {
-            try {
-                const res = await checkSession();
-                setIsConnected(res.connected);
-                if (!res.connected) {
-                    setShowAuthAlert(true);
-                }
-            } catch (err) {
-                console.error("Session check failed", err);
-                setIsConnected(false);
-                setShowAuthAlert(true);
-            }
-        };
-        verifySession();
-    }, [location.pathname]); // Re-check on navigation
+    const { isConnected, showAuthAlert } = useAuth();
 
     const navItems = [
         { path: '/', label: 'Dashboard', icon: LayoutDashboard },
