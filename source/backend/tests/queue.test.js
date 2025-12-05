@@ -44,19 +44,24 @@ describe('QueueService', () => {
     expect(queueService.processQueue).toHaveBeenCalled();
   });
 
-  test('addJob triggers processQueue', async () => {
-    const jobData = { message: "Process Job", type: "discord_post", postType: "Suno link" };
+  test('addJob triggers processQueue with attachments', async () => {
+    const jobData = { 
+      message: "Process Job", 
+      type: "discord_post", 
+      postType: "Suno link",
+      attachments: ["file1.png"] 
+    };
     const discordService = require('../services/discord');
     
     queueService.addJob(jobData);
     
-    // processQueue is async. We need to wait for it to likely complete.
-    // Or we can just check if postToChannels was called.
-    // Since we mocked postToChannels, we can check calls.
-    
     // Allow microtasks to complete
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    expect(discordService.postToChannels).toHaveBeenCalled();
+    expect(discordService.postToChannels).toHaveBeenCalledWith(
+      jobData.message,
+      jobData.postType,
+      jobData.attachments
+    );
   });
 });

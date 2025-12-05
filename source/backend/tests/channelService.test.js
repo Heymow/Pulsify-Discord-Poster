@@ -84,6 +84,25 @@ describe('ChannelService', () => {
     expect(writtenData["Suno link"][1].name).toBe("Imported Channel");
   });
 
+  test('importChannels creates new channel type if it does not exist', () => {
+    const importData = {
+      "New Type": [
+        { name: "New Channel", url: "https://discord.com/channels/999/999" }
+      ]
+    };
+
+    fs.writeFileSync.mockImplementation(() => {});
+
+    const stats = channelService.importChannels(importData);
+
+    expect(stats.added).toBe(1);
+    
+    const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+    expect(writtenData["New Type"]).toBeDefined();
+    expect(writtenData["New Type"]).toHaveLength(1);
+    expect(writtenData["New Type"][0].name).toBe("New Channel");
+  });
+
   test('toggleEveryone adds/removes channel from everyone list', () => {
     const url = "https://discord.com/channels/123/456";
     fs.writeFileSync.mockImplementation(() => {});

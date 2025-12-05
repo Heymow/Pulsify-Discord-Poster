@@ -168,9 +168,24 @@ describe('DiscordService', () => {
     );
   });
 
+  test('postToChannels attaches files', async () => {
+    const mockChannels = [{ name: "C1", url: "http://c1" }];
+    channelService.getChannelsByType.mockReturnValue(mockChannels);
+    channelService.getEveryoneChannels.mockReturnValue(new Set());
+
+    // Mock setInputFiles
+    mockPage.setInputFiles = jest.fn().mockResolvedValue();
+
+    const attachments = [{ path: 'path/to/file1.png' }, { path: 'path/to/file2.png' }];
+    await discordService.postToChannels("Test Message", "Suno link", attachments);
+
+    const expectedPaths = ['path/to/file1.png', 'path/to/file2.png'];
+    expect(mockPage.setInputFiles).toHaveBeenCalledWith(expect.any(String), expectedPaths);
+  });
+
   // Note: login test skipped as it requires complex browser automation
   // This is better tested manually or with E2E testing
-  test.skip('login launches browser and saves state', async () => {
+  test('login launches browser and saves state', async () => {
     await discordService.login();
 
     expect(chromium.launch).toHaveBeenCalledWith({ headless: false });

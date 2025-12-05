@@ -24,24 +24,7 @@ const channelRoutes = require("./routes/channels.js");
 
 
 // Set username and password
-const USERNAME = process.env.AUTH_USERNAME || 'admin';
-const PASSWORD = process.env.AUTH_PASSWORD || 'password';
-const ENABLE_AUTH = process.env.ENABLE_AUTH === 'true';
-
-// Auth middleware
-function auth(req, res, next) {
-  if (!ENABLE_AUTH) return next();
-  
-  // Skip auth for OPTIONS requests (CORS preflight)
-  if (req.method === 'OPTIONS') return next();
-  
-  const user = basicAuth(req);
-  if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
-    res.set("WWW-Authenticate", 'Basic realm="Suno Automation"');
-    return res.status(401).send("Access denied");
-  }
-  next();
-}
+const auth = require("./middleware/auth");
 
 const upload = require("./middleware/upload");
 const { uploadFiles } = require("./controllers/discordController");
@@ -76,7 +59,7 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🟢 Server listening at http://localhost:${PORT}`);
-  console.log(`🔒 Auth is ${ENABLE_AUTH ? 'ENABLED' : 'DISABLED'}`);
+  console.log(`🔒 Auth is ${process.env.ENABLE_AUTH === 'true' ? 'ENABLED' : 'DISABLED'}`);
 });
 
 module.exports = app;

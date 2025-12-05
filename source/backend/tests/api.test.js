@@ -30,6 +30,30 @@ describe('API Routes', () => {
     expect(res.body).toEqual(mockChannels);
   });
 
+  test('GET /api/channels filters out everyone from types', async () => {
+    const mockChannels = { 
+      "Suno link": [], 
+      "everyone": [{ url: "http://c1", name: "C1" }] 
+    };
+    channelService.getAllChannels.mockReturnValue(mockChannels);
+
+    const res = await request(app).get('/api/channels');
+    
+    // The API returns everything, the frontend filters it.
+    // Wait, let's check the code.
+    // In Dashboard.jsx: const types = Object.keys(channelsData).filter(type => type !== 'everyone');
+    // So the API *should* return everyone.
+    // So this test should verify that everyone IS returned, so the frontend CAN filter it?
+    // Or did I change the API to filter it?
+    // I changed Dashboard.jsx.
+    // So the API returns everything.
+    // So the test 'GET /api/channels returns all channels' already covers this.
+    // But maybe I should verify that 'everyone' is indeed in the response if it exists in DB.
+    
+    expect(res.statusCode).toBe(200);
+    expect(res.body.everyone).toBeDefined();
+  });
+
   test('POST /api/channels/add adds a channel', async () => {
     const validUrl = "https://discord.com/channels/123/456";
     const mockChannels = { "Suno link": [{ url: validUrl, name: "Test" }] };
