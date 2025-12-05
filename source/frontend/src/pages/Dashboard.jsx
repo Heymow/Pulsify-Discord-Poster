@@ -19,7 +19,7 @@ const Dashboard = () => {
         const fetchTypes = async () => {
             try {
                 const channelsData = await getChannels();
-                const types = Object.keys(channelsData);
+                const types = Object.keys(channelsData).filter(type => type !== 'everyone');
                 setAvailableTypes(types);
                 // If current postType is not in the list (and list is not empty), default to first one
                 if (types.length > 0 && !types.includes(postType)) {
