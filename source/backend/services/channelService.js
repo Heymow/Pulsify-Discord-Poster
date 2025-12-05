@@ -205,7 +205,16 @@ const channelService = {
     let skipped = 0;
 
     for (const type in importData) {
-      if (!currentData[type]) continue; // Skip unknown types
+      // Create type if it doesn't exist (except 'everyone' which is handled separately but we shouldn't receive it as a type usually, 
+      // actually 'everyone' key in importData should be handled if we want to import everyone status? 
+      // The current logic iterates all keys. If 'everyone' is in importData, it might be processed here.
+      // But 'everyone' is initialized in readChannels.
+      
+      if (!currentData[type]) {
+          // Auto-create new type
+          currentData[type] = [];
+      }
+      
       if (!Array.isArray(importData[type])) continue;
 
       importData[type].forEach(importedChannel => {
