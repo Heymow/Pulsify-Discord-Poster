@@ -102,10 +102,21 @@ class DiscordService {
     }
   }
 
-  async postMessageToChannel(page, message, isEveryone) {
+  async postMessageToChannel(page, message, isEveryone, attachments = []) {
     try {
       // Check for NSFW popup first
       await this.handleNSFWConfirmation(page);
+
+      // Handle attachments
+      if (attachments && attachments.length > 0) {
+        const filePaths = attachments.map(f => f.path);
+        logger.info(`Attaching ${filePaths.length} files...`);
+        // We need to make sure the file input is present. It usually is hidden.
+        // Playwright handles hidden inputs well.
+        await page.setInputFiles(selectors.fileInput, filePaths);
+        // Wait a bit for upload processing (Discord shows a preview)
+        await page.waitForTimeout(2000); 
+      }
 
       // logger.info("Waiting for textbox..."); // Reduce noise
       await page.waitForSelector(selectors.textbox, { state: "visible", timeout: 20000 });
@@ -139,7 +150,7 @@ class DiscordService {
             (selector) => {
               const messages = document.querySelectorAll(selector);
               const lastMessages = Array.from(messages).slice(-5);
-              return lastMessages.some((msg) => msg.textContent.includes("suno.com/song/"));
+              return lastMessages.some((msg) => msg.textContent.includes("suno.com/song/") || msg.textContent.includes(message.substring(0, 10)));
             },
             selectors.messageContent,
             { timeout: 5000 }
@@ -193,7 +204,7 @@ class DiscordService {
     }
   }
 
-  async processChannel(context, url, message, isEveryone, currentName) {
+  async processChannel(context, url, message, isEveryone, currentName, attachments = []) {
     const page = await context.newPage();
     try {
       const navigated = await this.navigateToUrl(page, url);
@@ -205,7 +216,7 @@ class DiscordService {
       await page.waitForLoadState("networkidle", { timeout: 30000 });
       await page.waitForTimeout(2000);
 
-      await this.postMessageToChannel(page, message, isEveryone);
+      await this.postMessageToChannel(page, message, isEveryone, attachments);
       
         // Auto-detect name if missing or default
         // We try to detect name regardless of URL type, as DMs and Servers share similar structures sometimes
@@ -254,7 +265,7 @@ class DiscordService {
     }
   }
 
-  async postToChannels(message, postType = "Suno link") {
+  async postToChannels(message, postType = "Suno link", attachments = []) {
     logger.info(`Starting post job: ${postType} with ${this.CONCURRENT_TABS} concurrent tabs`);
     
     const channelsList = channelService.getChannelsByType(postType);
@@ -286,7 +297,7 @@ class DiscordService {
           const name = channel.name;
           const isEveryone = everyoneChannels.has(url);
           
-          promises.push(this.processChannel(context, url, message, isEveryone, name));
+          promises.push(this.processChannel(context, url, message, isEveryone, name, attachments));
 
           // Random delay between 0.5s and 1.5s to look more human
           const tabDelay = 500 + Math.random() * 1000;

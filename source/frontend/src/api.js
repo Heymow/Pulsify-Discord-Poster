@@ -63,21 +63,6 @@ export const toggleEveryone = async (url) => {
   const response = await api.post('/api/channels/toggle-everyone', { url });
   return response.data;
 };
-
-export const updateChannel = async (oldUrl, newUrl, name) => {
-  const response = await api.post('/api/channels/update', { oldUrl, newUrl, name });
-  return response.data;
-};
-
-export const postMessage = async (message, postType) => {
-  const response = await api.post('/discord/post', { message, postType });
-  return response.data;
-};
-
-export const triggerDiscordLogin = async () => {
-  // This is a script that runs on backend, but how do we trigger it?
-  // The existing backend doesn't seem to have a route for "login".
-  // `post-channels.js` launches browser with `storageState: "discord-session.json"`.
   // If session is missing, it might fail.
   // We need a route to trigger the login flow (save-session.js).
   // I need to add a route for this in backend!

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { postMessage } from '../api';
-import { Send, Terminal, Sparkles, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { postMessage, uploadFiles } from '../api';
+import { Send, Terminal, Sparkles, Zap, Paperclip, X, FileText } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../context/DashboardContext';
@@ -24,6 +24,8 @@ const Dashboard = () => {
     const { isConnected, triggerAuthAlert } = useAuth();
     const { message, setMessage, postType, setPostType, logs, setLogs } = useDashboard();
     const [loading, setLoading] = useState(false);
+    const [files, setFiles] = useState([]);
+    const fileInputRef = useRef(null);
     const logsEndRef = useRef(null);
 
     useEffect(() => {
@@ -39,8 +41,33 @@ const Dashboard = () => {
         logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [logs]);
 
+    const handleFileChange = (e) => {
+        const selectedFiles = Array.from(e.target.files);
+        const validFiles = [];
+        const maxFileSize = 10 * 1024 * 1024; // 10MB
+
+        if (files.length + selectedFiles.length > 10) {
+            setLogs(prev => [...prev, { message: "⚠️ Max 10 files allowed.", type: "warning", timestamp: new Date().toISOString() }]);
+            return;
+        }
+
+        selectedFiles.forEach(file => {
+            if (file.size > maxFileSize) {
+                setLogs(prev => [...prev, { message: `⚠️ File ${file.name} exceeds 10MB limit.`, type: "warning", timestamp: new Date().toISOString() }]);
+            } else {
+                validFiles.push(file);
+            }
+        });
+
+        setFiles(prev => [...prev, ...validFiles]);
+    };
+
+    const removeFile = (index) => {
+        setFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
     const handlePost = async () => {
-        if (!message.trim()) return;
+        if (!message.trim() && files.length === 0) return;
 
         if (!isConnected) {
             triggerAuthAlert();
@@ -50,9 +77,23 @@ const Dashboard = () => {
 
         setLoading(true);
         setLogs(prev => [...prev, { message: "🚀 Sending job to backend...", type: "info", timestamp: new Date().toISOString() }]);
+
         try {
-            await postMessage(message, postType);
+            let uploadedAttachments = [];
+            if (files.length > 0) {
+                setLogs(prev => [...prev, { message: `Uploading ${files.length} files...`, type: "info", timestamp: new Date().toISOString() }]);
+                const uploadResult = await uploadFiles(files);
+                uploadedAttachments = uploadResult.files;
+                setLogs(prev => [...prev, { message: "✅ Files uploaded successfully.", type: "success", timestamp: new Date().toISOString() }]);
+            }
+
+            await postMessage(message, postType, uploadedAttachments);
             setLogs(prev => [...prev, { message: "✅ Job accepted by backend.", type: "success", timestamp: new Date().toISOString() }]);
+            setFiles([]); // Clear files after success
+            setMessage(""); // Optional: clear message too? User might want to keep it. Let's keep it for now or clear it? 
+            // Usually we clear it. But let's stick to previous behavior for message (it wasn't cleared before).
+            // Wait, looking at previous code: `setMessage` was NOT called in `handlePost`.
+            // So I won't clear it either.
         } catch (err) {
             setLogs(prev => [...prev, { message: `❌ Error: ${err.message}`, type: "error", timestamp: new Date().toISOString() }]);
         } finally {
@@ -131,16 +172,76 @@ const Dashboard = () => {
                                     className="w-full h-40 bg-black/50 border-b-2 border-white/10 p-4 text-lg text-white outline-none focus:border-secondary transition-all resize-none hover:bg-white/5 placeholder:text-white/20"
                                 />
                                 {/* Corner accents */}
-                                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/20" />
                                 <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-white/20" />
+                            </div>
+
+                            {/* File Attachments */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-wider group"
+                                    >
+                                        <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
+                                            <Paperclip className="w-4 h-4" />
+                                        </div>
+                                        <span>Attach Files ({files.length}/10)</span>
+                                    </button>
+                                    <span className="text-[10px] text-gray-600 uppercase tracking-widest">
+                                        Max 10MB per file
+                                    </span>
+                                </div>
+
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    multiple
+                                    className="hidden"
+                                />
+
+                                <AnimatePresence>
+                                    {files.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="grid grid-cols-1 gap-2"
+                                        >
+                                            {files.map((file, index) => (
+                                                <motion.div
+                                                    key={`${file.name}-${index}`}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: 10 }}
+                                                    className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5 group hover:border-white/10 transition-colors"
+                                                >
+                                                    <div className="flex items-center gap-3 overflow-hidden">
+                                                        <FileText className="w-4 h-4 text-secondary shrink-0" />
+                                                        <div className="flex flex-col min-w-0">
+                                                            <span className="text-sm text-gray-300 truncate font-medium">{file.name}</span>
+                                                            <span className="text-[10px] text-gray-500 font-mono">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeFile(index)}
+                                                        className="p-1.5 rounded-md text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </motion.div>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={handlePost}
-                                disabled={loading || !message.trim()}
-                                className={`w-full py-4 rounded-xl font-bold text-lg uppercase tracking-widest flex items-center justify-center space-x-3 transition-all relative overflow-hidden group ${loading || !message.trim()
+                                disabled={loading || (!message.trim() && files.length === 0)}
+                                className={`w-full py-4 rounded-xl font-bold text-lg uppercase tracking-widest flex items-center justify-center space-x-3 transition-all relative overflow-hidden group ${loading || (!message.trim() && files.length === 0)
                                     ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
                                     : 'bg-white text-black hover:bg-primary hover:text-white cursor-pointer'
                                     }`}

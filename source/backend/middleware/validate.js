@@ -22,6 +22,12 @@ const schemas = {
   discordPost: z.object({
     message: z.string().min(1, "Message is required"),
     postType: z.string().optional(),
+    attachments: z.array(z.object({
+      originalName: z.string(),
+      path: z.string(),
+      size: z.number(),
+      mimetype: z.string()
+    })).optional(),
   }),
   googleSave: z.object({
     message: z.string().min(1, "Message is required"),

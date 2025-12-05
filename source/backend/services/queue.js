@@ -64,7 +64,7 @@ class QueueService {
       
       try {
         if (job.type === "discord_post") {
-          await discordService.postToChannels(job.message, job.postType);
+          await discordService.postToChannels(job.message, job.postType, job.attachments);
         }
         
         // Remove job only after success
@@ -78,6 +78,20 @@ class QueueService {
         // In a real system, we might want a retry count or a "dead letter queue".
         this.queue.shift();
         this.saveQueue();
+      } finally {
+        // Cleanup attachments
+        if (job.attachments && job.attachments.length > 0) {
+          job.attachments.forEach(file => {
+            try {
+              if (fs.existsSync(file.path)) {
+                fs.unlinkSync(file.path);
+                logger.info(`Deleted attachment: ${file.path}`);
+              }
+            } catch (cleanupErr) {
+              logger.error(`Failed to delete attachment ${file.path}: ${cleanupErr.message}`);
+            }
+          });
+        }
       }
     }
 

@@ -22,16 +22,36 @@ async function login(req, res, next) {
   }
 }
 
+async function uploadFiles(req, res, next) {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
+    }
+    
+    const files = req.files.map(file => ({
+      originalName: file.originalname,
+      path: file.path,
+      size: file.size,
+      mimetype: file.mimetype
+    }));
+
+    res.json({ success: true, files });
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function postToDiscordChannels(req, res, next) {
   try {
     console.log("🚀 Discord trigger received");
-    const { message, postType = "Suno link" } = req.body;
+    const { message, postType = "Suno link", attachments = [] } = req.body;
 
     // Add job to queue
     const jobId = queueService.addJob({
       type: "discord_post",
       message,
       postType,
+      attachments, // Array of file paths
     });
 
     res.json({ 
@@ -75,4 +95,4 @@ async function updateConcurrency(req, res, next) {
   }
 }
 
-module.exports = { postToDiscordChannels, login, checkSession, logout, updateConcurrency };
+module.exports = { postToDiscordChannels, login, checkSession, logout, updateConcurrency, uploadFiles };

@@ -43,6 +43,12 @@ function auth(req, res, next) {
   next();
 }
 
+const upload = require("./middleware/upload");
+const { uploadFiles } = require("./controllers/discordController");
+
+// Upload endpoint
+app.post("/api/upload", auth, upload.array("files", 10), uploadFiles);
+
 // Apply auth to existing routes
 app.use("/discord", auth, discordRoutes);
 app.use("/api/channels", auth, channelRoutes);
