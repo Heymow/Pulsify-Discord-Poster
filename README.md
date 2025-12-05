@@ -1,4 +1,4 @@
-# Discord Poster
+# Pulsify Discord Poster
 
 A tool to automate Discord channel posting.
 
