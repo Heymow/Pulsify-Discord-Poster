@@ -43,7 +43,7 @@ echo.
 
 :: Check if dependencies are installed
 if not exist "source\backend\node_modules" (
-    echo [ERROR] Backend dependencies not found.
+    echo [ERROR] Backend dependencies not found at: %CD%\source\backend\node_modules
     echo Please run 'setup.bat' to install them.
     echo.
     pause
@@ -51,7 +51,7 @@ if not exist "source\backend\node_modules" (
 )
 
 if not exist "source\frontend\node_modules" (
-    echo [ERROR] Frontend dependencies not found.
+    echo [ERROR] Frontend dependencies not found at: %CD%\source\frontend\node_modules
     echo Please run 'setup.bat' to install them.
     echo.
     pause

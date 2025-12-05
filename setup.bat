@@ -64,30 +64,32 @@ set "NPM_PATH="
 for /f "tokens=*" %%i in ('where npm') do set "NPM_PATH=%%~dpi"
 
 if "%NPM_PATH%"=="" (
-    :: Try to find it in standard install locations if not in PATH
     if exist "C:\Program Files\nodejs\npm.cmd" (
         set "NPM_PATH=C:\Program Files\nodejs\"
     ) else (
-        echo [WARNING] NPM not found in PATH. Attempting to use 'npm' directly...
+        echo [WARNING] NPM not found in PATH.
     )
 ) else (
-    :: Remove trailing backslash
     set "NPM_PATH=%NPM_PATH:~0,-1%"
     echo Found NPM at: !NPM_PATH!
 )
 
-:: Helper function to run npm
-set "NPM_CMD=npm"
-if not "%NPM_PATH%"=="" set "NPM_CMD=cmd /c set "PATH=!NPM_PATH!;!PATH!" && npm"
+:: Add NPM to PATH for this session
+if not "%NPM_PATH%"=="" set "PATH=!NPM_PATH!;!PATH!"
 
 echo.
 
 :: 3. Install Backend Dependencies
 echo [3/4] Installing Backend Dependencies...
 cd source\backend
-call !NPM_CMD! install
+call npm install
 if %errorlevel% neq 0 (
-    echo Failed to install backend dependencies.
+    echo [ERROR] Failed to install backend dependencies.
+    pause
+    exit /b 1
+)
+if not exist "node_modules" (
+    echo [ERROR] npm install finished but node_modules folder is missing.
     pause
     exit /b 1
 )
@@ -97,9 +99,14 @@ echo.
 :: 4. Install Frontend Dependencies
 echo [4/4] Installing Frontend Dependencies...
 cd source\frontend
-call !NPM_CMD! install
+call npm install
 if %errorlevel% neq 0 (
-    echo Failed to install frontend dependencies.
+    echo [ERROR] Failed to install frontend dependencies.
+    pause
+    exit /b 1
+)
+if not exist "node_modules" (
+    echo [ERROR] npm install finished but node_modules folder is missing.
     pause
     exit /b 1
 )
