@@ -41,6 +41,23 @@ set "NPM_PATH=%NPM_PATH:~0,-1%"
 echo Found NPM at: %NPM_PATH%
 echo.
 
+:: Check if dependencies are installed
+if not exist "source\backend\node_modules" (
+    echo [ERROR] Backend dependencies not found.
+    echo Please run 'setup.bat' to install them.
+    echo.
+    pause
+    exit
+)
+
+if not exist "source\frontend\node_modules" (
+    echo [ERROR] Frontend dependencies not found.
+    echo Please run 'setup.bat' to install them.
+    echo.
+    pause
+    exit
+)
+
 start "Discord Poster - Backend" cmd /k "set "PATH=%NPM_PATH%;%PATH%" && cd source\backend && npm run dev"
 timeout /t 5 /nobreak > nul
 start "Discord Poster - Frontend" cmd /k "set "PATH=%NPM_PATH%;%PATH%" && cd source\frontend && npm run dev"
