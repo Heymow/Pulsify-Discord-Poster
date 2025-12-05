@@ -57,9 +57,11 @@ app.get("/api/logs", auth, (req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🟢 Server listening at http://localhost:${PORT}`);
-  console.log(`🔒 Auth is ${process.env.ENABLE_AUTH === 'true' ? 'ENABLED' : 'DISABLED'}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🟢 Server listening at http://localhost:${PORT}`);
+    console.log(`🔒 Auth is ${process.env.ENABLE_AUTH === 'true' ? 'ENABLED' : 'DISABLED'}`);
+  });
+}
 
 module.exports = app;
