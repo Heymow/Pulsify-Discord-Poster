@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Download, X, CheckSquare, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlowCard from './GlowCard';
 
 const ExportModal = ({ isOpen, onClose, channels }) => {
-    const [selectedCategories, setSelectedCategories] = useState(
-        Object.keys(channels).reduce((acc, key) => ({ ...acc, [key]: true }), {})
-    );
+    const [selectedCategories, setSelectedCategories] = useState({});
+
+    useEffect(() => {
+        if (isOpen && channels) {
+            setSelectedCategories(
+                Object.keys(channels).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+            );
+        }
+    }, [isOpen, channels]);
 
     const toggleCategory = (category) => {
         setSelectedCategories(prev => ({

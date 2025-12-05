@@ -1,34 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { postMessage, uploadFiles } from '../api';
+import { postMessage, uploadFiles, getChannels } from '../api';
 import { Send, Terminal, Sparkles, Zap, Paperclip, X, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import { useAuth } from '../context/AuthContext';
 import { useDashboard } from '../context/DashboardContext';
 
-const POST_TYPES = [
-    "Suno link",
-    "Playlist link",
-    "YouTube link",
-    "Spotify link",
-    "SoundCloud link",
-    "Instagram link",
-    "Twitter link",
-    "Facebook link",
-    "TikTok link",
-    "Riffusion link",
-    "DM"
-];
-
 const Dashboard = () => {
     const { isConnected, triggerAuthAlert } = useAuth();
     const { message, setMessage, postType, setPostType, logs, setLogs } = useDashboard();
     const [loading, setLoading] = useState(false);
     const [files, setFiles] = useState([]);
+    const [availableTypes, setAvailableTypes] = useState([]);
     const fileInputRef = useRef(null);
     const logsEndRef = useRef(null);
 
     useEffect(() => {
+        const fetchTypes = async () => {
+            try {
+                const channelsData = await getChannels();
+                const types = Object.keys(channelsData);
+                setAvailableTypes(types);
+                // If current postType is not in the list (and list is not empty), default to first one
+                if (types.length > 0 && !types.includes(postType)) {
+                    setPostType(types[0]);
+                }
+            } catch (error) {
+                console.error("Failed to fetch channel types", error);
+            }
+        };
+
+        fetchTypes();
+
         const eventSource = new EventSource('http://localhost:5000/api/logs');
         eventSource.onmessage = (event) => {
             const log = JSON.parse(event.data);
@@ -154,7 +157,7 @@ const Dashboard = () => {
                                     onChange={(e) => setPostType(e.target.value)}
                                     className="w-full bg-black/50 border-b-2 border-white/10 text-xl py-3 px-4 text-white outline-none focus:border-primary transition-all appearance-none cursor-pointer hover:bg-white/5"
                                 >
-                                    {POST_TYPES.map(type => (
+                                    {availableTypes.map(type => (
                                         <option key={type} value={type} className="bg-slate-900">{type}</option>
                                     ))}
                                 </select>
