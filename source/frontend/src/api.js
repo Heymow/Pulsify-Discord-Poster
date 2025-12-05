@@ -63,6 +63,30 @@ export const toggleEveryone = async (url) => {
   const response = await api.post('/api/channels/toggle-everyone', { url });
   return response.data;
 };
+
+export const updateChannel = async (oldUrl, newUrl, name) => {
+  const response = await api.post('/api/channels/update', { oldUrl, newUrl, name });
+  return response.data;
+};
+
+export const postMessage = async (message, postType, attachments = []) => {
+    const response = await api.post('/discord/post', { message, postType, attachments });
+    return response.data;
+};
+
+export const uploadFiles = async (files) => {
+    const formData = new FormData();
+    files.forEach(file => {
+        formData.append('files', file);
+    });
+    
+    const response = await api.post('/api/upload', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data;
+};
 export const triggerDiscordLogin = async () => {
   // If session is missing, it might fail.
   // We need a route to trigger the login flow (save-session.js).
