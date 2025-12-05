@@ -63,12 +63,12 @@ export const toggleEveryone = async (url) => {
   const response = await api.post('/api/channels/toggle-everyone', { url });
   return response.data;
 };
+export const triggerDiscordLogin = async () => {
   // If session is missing, it might fail.
   // We need a route to trigger the login flow (save-session.js).
   // I need to add a route for this in backend!
   const response = await api.post('/discord/login', {}, { timeout: 300000 });
   return response.data;
-
 };
 
 export const checkSession = async () => {
