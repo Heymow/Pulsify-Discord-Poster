@@ -183,7 +183,7 @@ const Dashboard = () => {
                                 <div className="flex items-center justify-between">
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-wider group"
+                                        className="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-wider group cursor-pointer"
                                     >
                                         <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
                                             <Paperclip className="w-4 h-4" />

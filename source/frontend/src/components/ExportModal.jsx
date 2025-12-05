@@ -34,7 +34,11 @@ const ExportModal = ({ isOpen, onClose, channels }) => {
     const handleExport = () => {
         const exportData = {};
         Object.keys(channels).forEach(key => {
-            if (selectedCategories[key]) {
+            // Always export 'everyone' list, skip it in the loop if it's handled separately or just let it be if selected
+            // But we are hiding it from UI, so we must add it manually if we want it always
+            if (key === 'everyone') {
+                exportData[key] = channels[key];
+            } else if (selectedCategories[key]) {
                 exportData[key] = channels[key];
             }
         });
@@ -67,7 +71,7 @@ const ExportModal = ({ isOpen, onClose, channels }) => {
                                 <Download className="w-6 h-6 text-primary" />
                                 Export Channels
                             </h2>
-                            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors cursor-pointer">
                                 <X className="w-6 h-6" />
                             </button>
                         </div>
@@ -82,28 +86,30 @@ const ExportModal = ({ isOpen, onClose, channels }) => {
                         </div>
 
                         <div className="space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2 mb-6">
-                            {Object.keys(channels).map(category => (
-                                <div
-                                    key={category}
-                                    onClick={() => toggleCategory(category)}
-                                    className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${selectedCategories[category] ? 'bg-primary/20 border border-primary/30' : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        {selectedCategories[category] ? (
-                                            <CheckSquare className="w-5 h-5 text-primary" />
-                                        ) : (
-                                            <Square className="w-5 h-5 text-gray-500" />
-                                        )}
-                                        <span className={selectedCategories[category] ? 'text-white' : 'text-gray-400'}>
-                                            {category}
+                            {Object.keys(channels)
+                                .filter(category => category !== 'everyone') // Hide 'everyone' from the list
+                                .map(category => (
+                                    <div
+                                        key={category}
+                                        onClick={() => toggleCategory(category)}
+                                        className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${selectedCategories[category] ? 'bg-primary/20 border border-primary/30' : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {selectedCategories[category] ? (
+                                                <CheckSquare className="w-5 h-5 text-primary" />
+                                            ) : (
+                                                <Square className="w-5 h-5 text-gray-500" />
+                                            )}
+                                            <span className={selectedCategories[category] ? 'text-white' : 'text-gray-400'}>
+                                                {category}
+                                            </span>
+                                        </div>
+                                        <span className="text-xs font-mono bg-black/30 px-2 py-1 rounded text-gray-400">
+                                            {channels[category]?.length || 0}
                                         </span>
                                     </div>
-                                    <span className="text-xs font-mono bg-black/30 px-2 py-1 rounded text-gray-400">
-                                        {channels[category]?.length || 0}
-                                    </span>
-                                </div>
-                            ))}
+                                ))}
                         </div>
 
                         <button
