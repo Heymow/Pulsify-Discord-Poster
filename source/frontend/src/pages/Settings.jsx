@@ -208,18 +208,18 @@ const Settings = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-gray-300 text-sm font-bold">Concurrent Tabs</p>
-                                    <p className="text-gray-500 text-xs">Simultaneous browser tabs (1-5)</p>
+                                    <p className="text-gray-500 text-xs">Simultaneous browser tabs (1-3)</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <input
                                         type="number"
                                         min="1"
-                                        max="5"
-                                        defaultValue="3"
+                                        max="3"
+                                        defaultValue="2"
                                         className="w-16 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-center outline-none focus:border-purple-500 appearance-none"
                                         onChange={async (e) => {
                                             const val = parseInt(e.target.value);
-                                            if (val >= 1 && val <= 5) {
+                                            if (val >= 1 && val <= 3) {
                                                 try {
                                                     await fetch('http://localhost:5000/discord/concurrency', {
                                                         method: 'POST',
@@ -236,7 +236,7 @@ const Settings = () => {
                             </div>
                             <p className="mt-3 text-xs text-gray-500">
                                 <span className="text-green-400 font-bold">1 (Safe)</span>: Human-like behavior, less detection risk.<br />
-                                <span className="text-yellow-400 font-bold">3+ (Fast)</span>: Higher throughput, higher CPU usage.
+                                <span className="text-yellow-400 font-bold">3 (Fast)</span>: Higher throughput, higher CPU usage.
                             </p>
                         </div>
 

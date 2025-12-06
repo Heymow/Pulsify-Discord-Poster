@@ -8,7 +8,7 @@ const logger = require("../utils/logger");
 class DiscordService {
   constructor() {
     this.browser = null;
-    this.CONCURRENT_TABS = process.env.CONCURRENT_TABS ? parseInt(process.env.CONCURRENT_TABS) : 3;
+    this.CONCURRENT_TABS = process.env.CONCURRENT_TABS ? parseInt(process.env.CONCURRENT_TABS) : 2;
     this._cachedUserId = null;
   }
   
