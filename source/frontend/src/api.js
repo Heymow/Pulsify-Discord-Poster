@@ -64,6 +64,11 @@ export const toggleEveryone = async (url) => {
   return response.data;
 };
 
+export const togglePause = async (url) => {
+  const response = await api.post('/api/channels/toggle-pause', { url });
+  return response.data;
+};
+
 export const updateChannel = async (oldUrl, newUrl, name) => {
   const response = await api.post('/api/channels/update', { oldUrl, newUrl, name });
   return response.data;
@@ -132,6 +137,16 @@ export const renameType = async (oldType, newType) => {
 export const importChannels = async (data) => {
   const response = await api.post('/api/channels/import', data);
   return response.data;
+};
+
+export const getSettings = async () => {
+    const response = await api.get('/api/settings');
+    return response.data;
+};
+
+export const saveSettings = async (settings) => {
+    const response = await api.post('/api/settings', settings);
+    return response.data;
 };
 
 export default api;

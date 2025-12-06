@@ -47,6 +47,18 @@ router.post('/toggle-everyone', validate(schemas.channelToggle), (req, res, next
   } catch (err) {
     next(err);
   }
+
+});
+
+// Toggle pause status for a channel
+router.post('/toggle-pause', validate(schemas.channelToggle), (req, res, next) => {
+  const { url } = req.body;
+  try {
+    const updatedChannels = channelService.togglePause(url);
+    res.json(updatedChannels);
+  } catch (err) {
+    next(err);
+  }
 });
 
 // Update channel

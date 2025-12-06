@@ -20,6 +20,7 @@ app.use((req, res, next) => {
 
 const discordRoutes = require("./routes/discord.js");
 const channelRoutes = require("./routes/channels.js");
+const settingsRoutes = require("./routes/settings.js");
 
 
 
@@ -35,6 +36,7 @@ app.post("/api/upload", auth, upload.array("files", 10), uploadFiles);
 // Apply auth to existing routes
 app.use("/discord", auth, discordRoutes);
 app.use("/api/channels", auth, channelRoutes);
+app.use("/api/settings", auth, settingsRoutes);
 
 // SSE Endpoint for logs
 app.get("/api/logs", auth, (req, res) => {

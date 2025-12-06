@@ -157,5 +157,26 @@ describe('DiscordService', () => {
     const result = await discordService.checkSession();
     expect(result).toBe(false);
   });
+
+  test('postToChannels skips paused channels', async () => {
+    const mockChannels = [
+      { name: "Active Channel", url: "http://active", paused: false },
+      { name: "Paused Channel", url: "http://paused", paused: true }
+    ];
+    channelService.getChannelsByType.mockReturnValue(mockChannels);
+    channelService.getEveryoneChannels.mockReturnValue(new Set());
+
+    const logger = require('../utils/logger'); // Get the mocked logger
+
+    await discordService.postToChannels("Test Message", "Suno link");
+
+    // Expect navigation for active channel
+    expect(mockPage.goto).toHaveBeenCalledWith("http://active", expect.any(Object));
+    // Expect NO navigation for paused channel
+    expect(mockPage.goto).not.toHaveBeenCalledWith("http://paused", expect.any(Object));
+
+    // Verify logger info message
+    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("Skipping paused channel: http://paused"));
+  });
 });
 

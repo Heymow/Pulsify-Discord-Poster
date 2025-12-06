@@ -38,7 +38,7 @@ function readChannels() {
       parsed[key] = parsed[key].map(item => {
         if (typeof item === 'string') {
           migrated = true;
-          return { name: "Unnamed Channel", url: item, failures: 0 };
+          return { name: "Unnamed Channel", url: item, failures: 0, paused: false };
         }
         return item;
       });
@@ -91,7 +91,8 @@ const channelService = {
     data[type].push({ 
       name: name || "Unnamed Channel", 
       url, 
-      failures: 0 
+      failures: 0,
+      paused: false 
     });
     writeChannels(data);
     return data;
@@ -109,6 +110,42 @@ const channelService = {
       data.everyone = data.everyone.filter(c => c.url !== url);
     }
     
+    writeChannels(data);
+    return data;
+  },
+
+
+  togglePause: (url) => {
+    const data = readChannels();
+    let found = false;
+    
+    // Check in everyone
+    if (data.everyone) {
+      const channel = data.everyone.find(c => c.url === url);
+      if (channel) {
+        channel.paused = !channel.paused;
+        found = true;
+      }
+    }
+    
+    // Check in other lists
+    for (const key in data) {
+      if (key === 'everyone') continue;
+      const channel = data[key].find(c => c.url === url);
+      if (channel) {
+        channel.paused = !channel.paused;
+        found = true;
+      }
+    }
+    
+    // If not found in any list (should not happen if UI is consistent, but logic-wise)
+    // Actually, if it's in 'everyone' AND a type list, we toggled both above.
+    // If it was only in one, we toggled that one.
+    
+    if (!found) {
+        throw new Error(`Channel with url ${url} not found`);
+    }
+
     writeChannels(data);
     return data;
   },
@@ -239,7 +276,8 @@ const channelService = {
           currentData[type].push({
             name: name || "Unnamed Channel",
             url: url,
-            failures: 0
+            failures: 0,
+            paused: false
           });
           added++;
         }

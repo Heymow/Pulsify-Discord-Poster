@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getChannels, addChannel, removeChannel, toggleEveryone, updateChannel, resetFailure } from '../api';
-import { Trash2, Plus, Hash, Search, AlertCircle, Download, Upload, Pencil, Check, X, Settings as Cog } from 'lucide-react';
+import { getChannels, addChannel, removeChannel, toggleEveryone, updateChannel, resetFailure, togglePause } from '../api';
+import { Trash2, Plus, Hash, Search, AlertCircle, Download, Upload, Pencil, Check, X, Settings as Cog, Play, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import ExportModal from '../components/ExportModal';
@@ -111,6 +111,15 @@ const Channels = () => {
     const handleToggleEveryone = async (url) => {
         try {
             const updated = await toggleEveryone(url);
+            setChannels(updated);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleTogglePause = async (url) => {
+        try {
+            const updated = await togglePause(url);
             setChannels(updated);
         } catch (err) {
             console.error(err);
@@ -491,6 +500,17 @@ const Channels = () => {
                                                 </div>
 
                                                 <div className="flex items-center gap-2 w-full sm:w-auto justify-end opacity-100 sm:opacity-0 group-hover:opacity-100 transition-all sm:translate-x-4 sm:group-hover:translate-x-0 duration-200">
+                                                    <button
+                                                        onClick={() => handleTogglePause(channel.url)}
+                                                        className={`p-2 rounded-lg transition-colors cursor-pointer ${channel.paused
+                                                                ? 'bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30'
+                                                                : 'text-gray-400 hover:text-green-500 hover:bg-green-500/10'
+                                                            }`}
+                                                        title={channel.paused ? "Resume" : "Pause"}
+                                                    >
+                                                        {channel.paused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                                                    </button>
+
                                                     <button
                                                         onClick={() => handleToggleEveryone(channel.url)}
                                                         className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${isEveryone

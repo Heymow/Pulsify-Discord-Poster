@@ -263,6 +263,11 @@ class DiscordService {
           const url = channel.url;
           const name = channel.name;
           const isEveryone = everyoneChannels.has(url);
+
+          if (channel.paused) {
+            logger.info(`Skipping paused channel: ${url}`);
+            continue;
+          }
           
           // Select correct instructions
           const instructions = isEveryone ? instructionsEveryone : instructionsNormal;

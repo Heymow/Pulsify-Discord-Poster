@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { triggerDiscordLogin, logout } from '../api';
-import { LogIn, LogOut, CheckCircle, AlertCircle, Loader2, Shield, Key } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { triggerDiscordLogin, logout, getSettings, saveSettings } from '../api';
+import { LogIn, LogOut, CheckCircle, AlertCircle, Loader2, Shield, Key, Save, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
 import GlowCard from '../components/GlowCard';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,41 @@ const Settings = () => {
     const { isConnected, setIsConnected, verifySession } = useAuth();
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState(null);
+
+    // Brain Key State
+    const [brainKey, setBrainKey] = useState('');
+    const [keyLoading, setKeyLoading] = useState(false);
+    const [keyStatus, setKeyStatus] = useState(null);
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const data = await getSettings();
+            setBrainKey(data.brainApiKey || '');
+        } catch (err) {
+            console.error("Failed to load settings", err);
+        }
+    };
+
+    const handleSaveKey = async () => {
+        if (!brainKey) return;
+        setKeyLoading(true);
+        setKeyStatus(null);
+        try {
+            await saveSettings({ brainApiKey: brainKey });
+            setKeyStatus({ type: 'success', message: 'API Key Saved' });
+            setTimeout(() => setKeyStatus(null), 3000);
+            fetchSettings(); // Refresh to ensure we align with backend state (e.g. masking)
+        } catch (err) {
+            console.error("Failed to save settings", err);
+            setKeyStatus({ type: 'error', message: 'Failed to save' });
+        } finally {
+            setKeyLoading(false);
+        }
+    };
 
     const handleLogin = async () => {
         setLoading(true);
@@ -39,12 +74,12 @@ const Settings = () => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="flex flex-col items-center justify-center min-h-[70vh] pb-20">
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5 }}
-                className="w-full max-w-lg"
+                className="w-full max-w-lg mb-8"
             >
                 <GlowCard className="p-10">
                     <div className="text-center mb-10">
@@ -112,14 +147,58 @@ const Settings = () => {
                         <div className="mt-6 p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/10 text-xs text-yellow-500/70 text-center leading-relaxed">
                             <p className="font-bold mb-1">⚠️ DISCLAIMER</p>
                             Automating user accounts is against Discord's Terms of Service. Use at your own risk.
-                            <br />
-                            However, this tool has been running safely for <span className="text-yellow-400 font-bold">over 8 months</span>.
                         </div>
-                        <div className="bg-white/5 p-4 rounded-xl border border-white/5">
-                            <h3 className="text-white font-bold mb-2">Performance Settings</h3>
+                    </div>
+                </GlowCard>
+            </motion.div>
+
+            {/* Brain API Key Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="w-full max-w-lg"
+            >
+                <GlowCard className="p-8 border-t-4 border-purple-500">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="p-3 bg-purple-500/20 rounded-xl">
+                            <Brain className="w-8 h-8 text-purple-400" />
+                        </div>
+                        <div>
+                            <h2 className="text-2xl font-bold text-white">BRAIN CONNECTION</h2>
+                            <p className="text-sm text-gray-400">Configure connection to the central intelligence.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Brain API Key</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="password"
+                                    value={brainKey}
+                                    onChange={(e) => setBrainKey(e.target.value)}
+                                    placeholder="Enter API Key"
+                                    className="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono text-sm"
+                                />
+                                <button
+                                    onClick={handleSaveKey}
+                                    disabled={keyLoading}
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                                >
+                                    {keyLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'SAVE'}
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                                This key authenticates you with the central brain server to receive task instructions.
+                            </p>
+                        </div>
+
+                        {/* Concurrency Settings moved here */}
+                        <div className="pt-4 border-t border-white/5 mt-4">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-gray-300 text-sm">Concurrent Tabs</p>
+                                    <p className="text-gray-300 text-sm font-bold">Concurrent Tabs</p>
                                     <p className="text-gray-500 text-xs">Simultaneous browser tabs (1-5)</p>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -128,7 +207,7 @@ const Settings = () => {
                                         min="1"
                                         max="5"
                                         defaultValue="3"
-                                        className="w-16 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-center outline-none focus:border-primary appearance-none"
+                                        className="w-16 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-white text-center outline-none focus:border-purple-500 appearance-none"
                                         onChange={async (e) => {
                                             const val = parseInt(e.target.value);
                                             if (val >= 1 && val <= 5) {
@@ -146,11 +225,18 @@ const Settings = () => {
                                     />
                                 </div>
                             </div>
-                            <p className="mt-3 text-xs text-gray-500">
-                                <span className="text-green-400 font-bold">1 (Safe)</span>: Human-like behavior, less detection risk.<br />
-                                <span className="text-yellow-400 font-bold">3+ (Fast)</span>: Higher throughput, higher CPU usage.
-                            </p>
                         </div>
+
+                        {keyStatus && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className={`text-center text-sm font-bold ${keyStatus.type === 'success' ? 'text-green-400' : 'text-red-400'
+                                    }`}
+                            >
+                                {keyStatus.message}
+                            </motion.div>
+                        )}
                     </div>
                 </GlowCard>
             </motion.div>

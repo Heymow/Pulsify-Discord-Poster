@@ -229,4 +229,48 @@ describe('ChannelService', () => {
       channelService.renameType("Suno link", "everyone");
     }).toThrow("Channel type 'everyone' already exists");
   });
+
+  test('togglePause toggles paused state', () => {
+    const url = "https://discord.com/channels/123/456";
+    fs.writeFileSync.mockImplementation(() => {});
+
+    // First toggle: Pause
+    channelService.togglePause(url);
+    let writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+    expect(writtenData["Suno link"][0].paused).toBe(true);
+
+    // Update mock data to reflect pause
+    fs.readFileSync.mockReturnValue(JSON.stringify(writtenData));
+
+    // Second toggle: Resume
+    channelService.togglePause(url);
+    writtenData = JSON.parse(fs.writeFileSync.mock.calls[1][1]);
+    expect(writtenData["Suno link"][0].paused).toBe(false);
+  });
+
+  test('togglePause throws if channel not found', () => {
+    expect(() => {
+      channelService.togglePause("https://discord.com/channels/999/999");
+    }).toThrow('Channel with url https://discord.com/channels/999/999 not found');
+  });
+
+  test('togglePause updates everyone list if present', () => {
+    const url = "https://discord.com/channels/123/456";
+    const mockWithEveryone = {
+      "Suno link": [
+        { name: "Test Channel", url: url, failures: 0, paused: false }
+      ],
+      "everyone": [
+        { name: "Test Channel", url: url, failures: 0, paused: false }
+      ]
+    };
+    fs.readFileSync.mockReturnValue(JSON.stringify(mockWithEveryone));
+    fs.writeFileSync.mockImplementation(() => {});
+
+    channelService.togglePause(url);
+
+    const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+    expect(writtenData["Suno link"][0].paused).toBe(true);
+    expect(writtenData.everyone[0].paused).toBe(true);
+  });
 });

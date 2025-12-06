@@ -1,10 +1,10 @@
 const axios = require('axios');
 const logger = require('../utils/logger');
+const settingsService = require('./settingsService');
 
 // In a real scenario, this URL would be the production server.
 // For now, it points to the localhost mock server.
-const BRAIN_API_URL = process.env.BRAIN_API_URL || 'http://localhost:3000/api/v1';
-const BRAIN_API_KEY = process.env.BRAIN_API_KEY || 'default-dev-key';
+const BRAIN_API_URL = process.env.BRAIN_API_URL || 'https://brain.pulsify.music/api/v1';
 
 class BrainService {
     /**
@@ -27,7 +27,7 @@ class BrainService {
                 },
                 {
                     headers: {
-                        'x-api-key': BRAIN_API_KEY,
+                        'x-api-key': settingsService.getBrainApiKey(),
                         'Content-Type': 'application/json'
                     }
                 }
