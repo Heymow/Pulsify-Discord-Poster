@@ -43,36 +43,59 @@ class DiscordService {
         const config = require("../config");
         
         if (require('fs').existsSync(config.discord.sessionFile)) {
-            const data = await fs.readFile(config.discord.sessionFile, 'utf8');
-            const session = JSON.parse(data);
+            let data = await fs.readFile(config.discord.sessionFile, 'utf8');
+            // Remove potential BOM and whitespace
+            data = data.replace(/^\uFEFF/, '').trim();
             
-            // Look for token in localStorage
-            // Structure: { origins: [ { origin: 'https://discord.com', localStorage: [ { name: 'token', value: '"VAL"' } ] } ] }
+            let session;
+            try {
+                session = JSON.parse(data);
+            } catch (parseError) {
+                logger.error(`Failed to parse session JSON. Content snippet (first 50 chars): ${data.substring(0, 50)}...`);
+                throw parseError;
+            }
+            
+            // Look for token and user_id_cache in localStorage
             let token = null;
+            let cachedId = null;
+            
             if (session.origins) {
                 for (const origin of session.origins) {
                     if (origin.origin.includes('discord.com') && origin.localStorage) {
                         const tokenEntry = origin.localStorage.find(item => item.name === 'token');
                         if (tokenEntry) {
-                            token = tokenEntry.value.replace(/"/g, ''); // Remove quotes
-                            break;
+                            token = tokenEntry.value.replace(/"/g, '');
+                        }
+                        
+                        const cacheEntry = origin.localStorage.find(item => item.name === 'user_id_cache');
+                        if (cacheEntry) {
+                            cachedId = cacheEntry.value.replace(/"/g, '');
                         }
                     }
                 }
             }
             
             if (token) {
-                // Decode JWT
-                const base64Url = token.split('.')[1];
-                if (base64Url) {
-                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
-                    if (payload.id) {
-                        this._cachedUserId = payload.id;
-                        logger.info(`Extract user ID from session: ${this._cachedUserId}`);
-                        return this._cachedUserId;
+                try {
+                    // Discord Token format: UserIdBase64.Timestamp.HMAC
+                    const base64Id = token.split('.')[0];
+                    if (base64Id) {
+                        const decodedId = Buffer.from(base64Id, 'base64').toString('utf-8');
+                        if (/^\d+$/.test(decodedId)) {
+                             this._cachedUserId = decodedId;
+                             logger.info(`Extract user ID from token: ${this._cachedUserId}`);
+                             return this._cachedUserId;
+                        }
                     }
+                } catch (e) {
+                    logger.warn(`Failed to decode token: ${e.message}`);
                 }
+            }
+            
+            if (cachedId) {
+                this._cachedUserId = cachedId;
+                logger.info(`Extract user ID from cache: ${this._cachedUserId}`);
+                return this._cachedUserId;
             }
         }
     } catch (err) {
