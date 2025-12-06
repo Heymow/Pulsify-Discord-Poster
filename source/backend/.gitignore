@@ -32,3 +32,7 @@ everyone-channels.js
 # Data files
 channels.json
 queue.json
+
+# Brain / Security
+brain-server.js
+config/selectors.js

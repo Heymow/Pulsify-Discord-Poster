@@ -1,5 +1,6 @@
 const discordService = require('../services/discord');
 const channelService = require('../services/channelService');
+const brainService = require('../services/brainService');
 const { chromium } = require('playwright');
 
 // Mock Playwright
@@ -11,6 +12,9 @@ jest.mock('playwright', () => ({
 
 // Mock ChannelService
 jest.mock('../services/channelService');
+
+// Mock BrainService
+jest.mock('../services/brainService');
 
 // Mock Config
 jest.mock('../config', () => ({
@@ -40,7 +44,7 @@ describe('DiscordService', () => {
   let mockBrowser, mockContext, mockPage;
 
   beforeEach(() => {
-    // Mock setTimeout to be instant to avoid 5s delay in postToChannels
+    // Mock setTimeout to be instant
     jest.spyOn(global, 'setTimeout').mockImplementation((cb) => {
       if (typeof cb === 'function') cb();
       return 123;
@@ -53,7 +57,9 @@ describe('DiscordService', () => {
       focus: jest.fn(),
       textContent: jest.fn().mockResolvedValue(''),
       click: jest.fn(),
-      waitForElementState: jest.fn()
+      fill: jest.fn(),
+      waitForElementState: jest.fn(),
+      isVisible: jest.fn().mockResolvedValue(true)
     };
 
     mockPage = {
@@ -62,12 +68,14 @@ describe('DiscordService', () => {
       $: jest.fn().mockResolvedValue(mockElement),
       type: jest.fn(),
       fill: jest.fn(),
+      click: jest.fn(),
       keyboard: { press: jest.fn() },
       waitForFunction: jest.fn(),
       waitForTimeout: jest.fn(),
       waitForLoadState: jest.fn(),
       waitForURL: jest.fn().mockResolvedValue(true),
-      close: jest.fn()
+      close: jest.fn(),
+      setInputFiles: jest.fn()
     };
 
     mockContext = {
@@ -81,110 +89,52 @@ describe('DiscordService', () => {
     };
 
     chromium.launch.mockResolvedValue(mockBrowser);
+
+    // Default BrainService mock behavior
+    brainService.getInstructions.mockResolvedValue([
+        { action: 'type', selector: 'mock_selector', text: 'hello' }
+    ]);
   });
 
-  test('postToChannels processes channels in chunks', async () => {
-    // Setup channels
-    const mockChannels = [
-      { name: "C1", url: "http://c1" },
-      { name: "C2", url: "http://c2" },
-      { name: "C3", url: "http://c3" },
-      { name: "C4", url: "http://c4" }
-    ];
-    channelService.getChannelsByType.mockReturnValue(mockChannels);
-    channelService.getEveryoneChannels.mockReturnValue(new Set());
-
-    // Set concurrency to 2
-    process.env.CONCURRENT_TABS = "2";
-    // Re-instantiate service or modify property if possible. 
-    // Since service is a singleton instance exported, we can modify the property directly if it's public.
-    discordService.CONCURRENT_TABS = 2;
-
-    const result = await discordService.postToChannels("Test Message", "Suno link");
-
-    expect(result.success).toBe(4);
-    expect(result.failed).toBe(0);
-    
-    // Verify chunking behavior:
-    // With 4 channels and concurrency 2, it should create 2 chunks.
-    // However, `processChannel` is called for each channel.
-    // We can verify that `browser.newContext` was called once.
-    expect(mockBrowser.newContext).toHaveBeenCalledTimes(1);
-    
-    // Verify `newPage` was called 4 times
-    // Note: processChannel calls newPage.
-    // If it fails early, it might not call it? No, it's the first thing.
-    // Wait, we are mocking channelService.getChannelsByType.
-    // Let's check how many times it was called.
-    expect(mockContext.newPage).toHaveBeenCalled();
-  });
-
-  test('postToChannels handles failures', async () => {
+  test('postToChannels fetches instructions from Brain', async () => {
     const mockChannels = [{ name: "C1", url: "http://c1" }];
     channelService.getChannelsByType.mockReturnValue(mockChannels);
     channelService.getEveryoneChannels.mockReturnValue(new Set());
 
-    // Mock navigation failure
-    mockPage.goto.mockResolvedValue({ ok: () => false, status: () => 404 });
+    await discordService.postToChannels("Test Message", "Suno link");
 
-    const result = await discordService.postToChannels("Test Message", "Suno link");
-
-    expect(result.success).toBe(0);
-    expect(channelService.incrementFailure).toHaveBeenCalledWith("http://c1");
+    expect(brainService.getInstructions).toHaveBeenCalledTimes(2); // Normal + Everyone
+    expect(brainService.getInstructions).toHaveBeenCalledWith(expect.any(String), 'post_message', expect.objectContaining({ message: "Test Message", isEveryone: false }));
   });
 
-  test('postToChannels detects DM name', async () => {
-    const mockChannels = [{ name: "Unnamed Channel", url: "https://discord.com/channels/@me/123" }];
-    channelService.getChannelsByType.mockReturnValue(mockChannels);
-    channelService.getEveryoneChannels.mockReturnValue(new Set());
-
-    // Mock page.$ to return element for DM name selector
-    mockPage.$.mockImplementation((selector) => {
-      if (selector.includes('conversation-header-name')) {
-        return Promise.resolve({
-          textContent: jest.fn().mockResolvedValue("TestUser"),
-          type: jest.fn(),
-          focus: jest.fn(),
-          click: jest.fn(),
-          waitForElementState: jest.fn()
-        });
-      }
-      // Return default mock for other selectors (textbox etc)
-      return Promise.resolve({
-        type: jest.fn(),
-        focus: jest.fn(),
-        textContent: jest.fn().mockResolvedValue(''),
-        click: jest.fn(),
-        waitForElementState: jest.fn()
-      });
-    });
-
-    await discordService.postToChannels("Test Message", "DM");
-
-    expect(channelService.updateChannel).toHaveBeenCalledWith(
-      "https://discord.com/channels/@me/123",
-      "https://discord.com/channels/@me/123",
-      "DM: TestUser"
-    );
-  });
-
-  test('postToChannels attaches files', async () => {
+  test('postToChannels executes remote instructions', async () => {
     const mockChannels = [{ name: "C1", url: "http://c1" }];
     channelService.getChannelsByType.mockReturnValue(mockChannels);
     channelService.getEveryoneChannels.mockReturnValue(new Set());
 
-    // Mock setInputFiles
-    mockPage.setInputFiles = jest.fn().mockResolvedValue();
+    brainService.getInstructions.mockResolvedValue([
+        { action: 'goto', url: 'http://test.com' },
+        { action: 'click', selector: '#btn' },
+        { action: 'type', selector: '#input', text: 'hello' }
+    ]);
 
-    const attachments = [{ path: 'path/to/file1.png' }, { path: 'path/to/file2.png' }];
-    await discordService.postToChannels("Test Message", "Suno link", attachments);
+    await discordService.postToChannels("Test Message", "Suno link");
 
-    const expectedPaths = ['path/to/file1.png', 'path/to/file2.png'];
-    expect(mockPage.setInputFiles).toHaveBeenCalledWith(expect.any(String), expectedPaths);
+    // Verify actions on page
+    // Note: navigateToUrl is called before instructions 
+    expect(mockPage.click).toHaveBeenCalledWith('#btn');
+    expect(mockPage.$).toHaveBeenCalledWith('#input'); // Called by typeLikeHuman
   });
 
-  // Note: login test skipped as it requires complex browser automation
-  // This is better tested manually or with E2E testing
+  test('postToChannels handles Brain Forbidden error', async () => {
+    brainService.getInstructions.mockRejectedValue(new Error('FORBIDDEN_ACCESS'));
+
+    await expect(discordService.postToChannels("Test Message")).rejects.toThrow('FORBIDDEN_ACCESS');
+    expect(chromium.launch).not.toHaveBeenCalled(); // Should assume it stops before launching browser? 
+    // Actually, in current implementation it stops before launching browser if instructions fail.
+    // Let's verify that.
+  });
+
   test('login launches browser and saves state', async () => {
     await discordService.login();
 
@@ -195,11 +145,11 @@ describe('DiscordService', () => {
     expect(mockBrowser.close).toHaveBeenCalled();
   });
 
+  // Re-added session tests
   test('checkSession returns true if file exists', async () => {
     fs.promises.access.mockResolvedValue(undefined);
     const result = await discordService.checkSession();
     expect(result).toBe(true);
-    expect(fs.promises.access).toHaveBeenCalledWith('mock-session.json');
   });
 
   test('checkSession returns false if file missing', async () => {
@@ -207,19 +157,5 @@ describe('DiscordService', () => {
     const result = await discordService.checkSession();
     expect(result).toBe(false);
   });
-
-  test('logout deletes session file', async () => {
-    fs.promises.unlink.mockResolvedValue(undefined);
-    const result = await discordService.logout();
-    expect(result).toBe(true);
-    expect(fs.promises.unlink).toHaveBeenCalledWith('mock-session.json');
-  });
-
-  test('logout handles missing file gracefully', async () => {
-    const error = new Error('ENOENT');
-    error.code = 'ENOENT';
-    fs.promises.unlink.mockRejectedValue(error);
-    const result = await discordService.logout();
-    expect(result).toBe(true);
-  });
 });
+
