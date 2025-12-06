@@ -38,19 +38,27 @@ const Dashboard = () => {
 
             // Clean up log message
             let cleanMessage = log.message
-                .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2702}-\u{27B0}\u{24C2}-\u{1F251}]/gu, '') // Remove emojis
-                .replace(/Brain/g, 'Central') // Rename Brain
+                // Remove all emojis and symbols
+                .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '')
+                .replace(/Brain/g, 'Central')
                 .replace(/Identity:.*Verifying.*/, 'Verifying Identity...')
                 .replace(/Requesting instructions.*/, 'Requesting Orders...')
                 .trim();
 
-            // Filter out technical/redundant logs
+            // Strict Filter
             if (
                 cleanMessage.includes('Payload:') ||
                 cleanMessage.includes('Using API Key:') ||
                 cleanMessage.includes('Job accepted') ||
                 cleanMessage.includes('Queue processing complete') ||
-                cleanMessage.includes('Processing job')
+                cleanMessage.includes('Processing job') ||
+                cleanMessage.includes('Sending job') ||
+                cleanMessage.includes('added to queue') ||
+                cleanMessage.includes('Extract user ID') ||
+                cleanMessage.includes('Requesting Orders') ||
+                cleanMessage.includes('accepted the request') ||
+                cleanMessage.includes('completed and removed') ||
+                cleanMessage === ''
             ) {
                 return;
             }
