@@ -130,16 +130,16 @@ describe('Discord Controller', () => {
     it('should update concurrency', async () => {
       const res = await request(app)
         .post('/discord/concurrency')
-        .send({ concurrency: 4 });
+        .send({ concurrency: 2 });
 
       expect(res.statusCode).toBe(200);
-      expect(discordService.setConcurrency).toHaveBeenCalledWith(4);
+      expect(discordService.setConcurrency).toHaveBeenCalledWith(2);
     });
 
     it('should validate concurrency range', async () => {
       const res = await request(app)
         .post('/discord/concurrency')
-        .send({ concurrency: 10 });
+        .send({ concurrency: 4 });
 
       expect(res.statusCode).toBe(400);
       expect(res.body.error).toContain('Concurrency must be between');

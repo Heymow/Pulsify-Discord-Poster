@@ -310,24 +310,18 @@ class DiscordService {
     const userId = await this.getUserId();
     logger.info(`Identity: ${userId} (Type: ${typeof userId}) - Verifying with Brain...`);
     
-    // 1. Fetch Instructions from Brain
-    // We fetch two sets: one for normal channels, one for everyone channels
-    // This validates the user immediately.
-    let instructionsNormal, instructionsEveryone;
-    try {
-        const payloadNormal = { message, isEveryone: false, attachments };
-        const payloadEveryone = { message, isEveryone: true, attachments };
-
-        [instructionsNormal, instructionsEveryone] = await Promise.all([
-            brainService.getInstructions(userId, 'post_message', payloadNormal),
-            brainService.getInstructions(userId, 'post_message', payloadEveryone)
-        ]);
-        // logger.info("🧠 Brain accepted the request. Instructions received.");
-    } catch (err) {
-        logger.error(`🧠 Operation Aborted: ${err.message}`);
-        // We throw so the Queue marks it as failed
-        throw err;
-    }
+    // 1. Fetch Instructions from Brain - MOVED TO PER-CHANNEL LOOP
+    // We no longer fetch batch instructions upfront because the Brain needs granular per-channel data.
+    
+    /* 
+       Optimization Note: 
+       Previously we validated the user here with a single call. 
+       Now validation happens on the first channel attempt. 
+       If the user is forbidden, the first channel will fail and throw. 
+       However, we are catching errors in the loop. 
+       We might want to "fail fast" if the first error is FORBIDDEN_ACCESS?
+       For now, we proceed.
+    */
 
     const channelsList = channelService.getChannelsByType(postType);
     if (!channelsList || channelsList.length === 0) {
@@ -362,10 +356,7 @@ class DiscordService {
             continue;
           }
           
-          // Select correct instructions
-          const instructions = isEveryone ? instructionsEveryone : instructionsNormal;
-
-          promises.push(this.processChannel(context, url, message, isEveryone, name, instructions));
+          promises.push(this.processChannel(context, url, message, isEveryone, name, userId, 'post_message', attachments));
 
           const tabDelay = 500 + Math.random() * 1000;
           await new Promise(r => setTimeout(r, tabDelay));
