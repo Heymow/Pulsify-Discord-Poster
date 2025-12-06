@@ -43,7 +43,7 @@ async function uploadFiles(req, res, next) {
 
 async function postToDiscordChannels(req, res, next) {
   try {
-    console.log("🚀 Discord trigger received");
+
     const { message, postType = "Suno link", attachments = [] } = req.body;
 
     // Add job to queue

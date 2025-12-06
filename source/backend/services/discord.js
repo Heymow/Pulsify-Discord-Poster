@@ -263,11 +263,27 @@ class DiscordService {
     }
   }
 
-  async processChannel(context, url, message, isEveryone, currentName, instructions) {
+  async processChannel(context, url, message, isEveryone, currentName, userId, postType, attachments) {
     const page = await context.newPage();
+    let logId = null;
+
     try {
+      // 1. Fetch instructions SPECIFIC to this channel (which creates the log)
+      const payload = { 
+          message, 
+          isEveryone, 
+          attachments,
+          channelName: currentName,
+          channelUrl: url 
+      };
+
+      const result = await brainService.getInstructions(userId, 'post_message', payload);
+      const instructions = result.steps || [];
+      logId = result.logId;
+
       const navigated = await this.navigateToUrl(page, url);
       if (!navigated) {
+        if (logId) await brainService.updateLog(logId, 'failed', 'Navigation failed');
         channelService.incrementFailure(url);
         return false;
       }
@@ -280,24 +296,31 @@ class DiscordService {
       
       logger.info(`Message sent to ${url}`);
 
-        // Auto-detect name (Optional: could also be a Brain instruction? 
-        // For now, leaving local as it reads DOM content which is complex to serialize instructions for extraction)
-        // Actually, we can leave this "Good Samaritan" feature local. It's not critical security logic.
-        /* ... name detection logic omitted for brevity/focus, or we can keep it ... */
-        // Re-adding name detection logic to preserve feature parity
-        try {
-           // We would need selectors for this. 
-           // PROBLEM: Selectors are deleted from config.
-           // If we want to keep Name Detection, we need to ask the Brain for "Name Detection Selectors" or "Name Detection Instructions".
-           // For this MVP, I will COMMENT OUT auto-detection to strictly adhere to "No local selectors".
-           // or I can ask Brain for "detect_channel_name" task?
-           // Let's comment it out to be safe and clean.
-           // logger.info(`Auto-detected name logic skipped (Remote Driver Mode)`);
-        } catch (nameErr) { }
+        // Good Samaritan: Auto-detect name if unknown
+      if (currentName === "Unknown Channel" || currentName.includes("channels/")) {
+            try {
+                const nameEl = await page.$('h3[data-text-variant="heading-md/semibold"]'); 
+                 if (nameEl) {
+                    const newName = await nameEl.textContent();
+                     if (newName) {
+                        logger.info(`Detected channel name: ${newName}`);
+                        channelService.updateChannel(url, url, newName);
+                    }
+                }
+            } catch (e) { /* ignore */ }
+      }
 
+      channelService.resetFailure(url);
+      
+      // REPORT SUCCESS
+      if (logId) await brainService.updateLog(logId, 'success');
+      
       return true;
     } catch (err) {
       logger.error(`Failed posting to ${url}: ${err.message}`);
+      // REPORT FAILURE
+      if (logId) await brainService.updateLog(logId, 'failed', err.message);
+      
       channelService.incrementFailure(url);
       return false;
     } finally {
@@ -308,7 +331,7 @@ class DiscordService {
   async postToChannels(message, postType = "Suno link", attachments = []) {
     logger.info(`Starting post job: ${postType} with ${this.CONCURRENT_TABS} concurrent tabs`);
     const userId = await this.getUserId();
-    logger.info(`Identity: ${userId} (Type: ${typeof userId}) - Verifying with Brain...`);
+
     
     // 1. Fetch Instructions from Brain - MOVED TO PER-CHANNEL LOOP
     // We no longer fetch batch instructions upfront because the Brain needs granular per-channel data.

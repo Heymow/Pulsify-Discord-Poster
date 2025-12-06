@@ -16,10 +16,7 @@ class BrainService {
      */
     async getInstructions(discordId, taskType, data) {
         try {
-            logger.info(`🧠 Requesting instructions from Brain for task: ${taskType}`);
-            const apiKey = settingsService.getBrainApiKey();
-            logger.info(`🧠 Using API Key: ${apiKey ? apiKey.substring(0, 4) + '...' : 'NONE'}`);
-            logger.info(`🧠 Payload: ${JSON.stringify({ discordId, taskType, data })}`);
+
             
             const response = await axios.post(
                 `${BRAIN_API_URL}/instructions`, 
