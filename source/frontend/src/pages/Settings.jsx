@@ -169,7 +169,7 @@ const Settings = () => {
                             <Brain className="w-8 h-8 text-purple-400" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold text-white">BRAIN CONNECTION</h2>
+                            <h2 className="text-2xl font-bold text-white">CENTRAL CONNECTION</h2>
                             <p className="text-sm text-gray-400">Configure connection to the central intelligence.</p>
                         </div>
                     </div>
@@ -177,10 +177,11 @@ const Settings = () => {
                     <div className="space-y-4">
 
                         <div className="flex flex-col gap-2">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Brain API Key</label>
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">API Key</label>
                             <div className="flex gap-2">
                                 <input
                                     type="password"
+                                    autoComplete="new-password"
                                     value={brainKey}
                                     onChange={(e) => setBrainKey(e.target.value)}
                                     placeholder="Enter API Key"
@@ -195,7 +196,7 @@ const Settings = () => {
                                 </button>
                             </div>
                             <p className="text-xs text-gray-600 mt-1">
-                                This key authenticates you with the central brain server to receive task instructions.
+                                This key authenticates you with the central server to receive task instructions.
                             </p>
                         </div>
 

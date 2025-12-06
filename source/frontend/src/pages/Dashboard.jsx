@@ -35,7 +35,34 @@ const Dashboard = () => {
         const eventSource = new EventSource('http://localhost:5000/api/logs');
         eventSource.onmessage = (event) => {
             const log = JSON.parse(event.data);
-            setLogs(prev => [...prev, log]);
+
+            // Clean up log message
+            let cleanMessage = log.message
+                .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2702}-\u{27B0}\u{24C2}-\u{1F251}]/gu, '') // Remove emojis
+                .replace(/Brain/g, 'Central') // Rename Brain
+                .replace(/Identity:.*Verifying.*/, 'Verifying Identity...')
+                .replace(/Requesting instructions.*/, 'Requesting Orders...')
+                .trim();
+
+            // Filter out technical/redundant logs
+            if (
+                cleanMessage.includes('Payload:') ||
+                cleanMessage.includes('Using API Key:') ||
+                cleanMessage.includes('Job accepted') ||
+                cleanMessage.includes('Queue processing complete') ||
+                cleanMessage.includes('Processing job')
+            ) {
+                return;
+            }
+
+            setLogs(prev => {
+                const lasts = prev.slice(-3); // Check last 3 logs
+                // Avoid adjacent duplicates
+                if (lasts.some(l => l.message === cleanMessage && (new Date() - new Date(l.timestamp) < 2000))) {
+                    return prev;
+                }
+                return [...prev, { ...log, message: cleanMessage }];
+            });
         };
         return () => eventSource.close();
     }, []);
