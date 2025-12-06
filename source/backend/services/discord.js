@@ -318,6 +318,7 @@ class DiscordService {
         const payloadNormal = { message, isEveryone: false, attachments };
         const payloadEveryone = { message, isEveryone: true, attachments };
 
+        [instructionsNormal, instructionsEveryone] = await Promise.all([
             brainService.getInstructions(userId, 'post_message', payloadNormal),
             brainService.getInstructions(userId, 'post_message', payloadEveryone)
         ]);
