@@ -106,24 +106,17 @@ const Dashboard = () => {
         }
 
         setLoading(true);
-        setLogs(prev => [...prev, { message: "🚀 Sending job to backend...", type: "info", timestamp: new Date().toISOString() }]);
 
         try {
             let uploadedAttachments = [];
             if (files.length > 0) {
-                setLogs(prev => [...prev, { message: `Uploading ${files.length} files...`, type: "info", timestamp: new Date().toISOString() }]);
                 const uploadResult = await uploadFiles(files);
                 uploadedAttachments = uploadResult.files;
-                setLogs(prev => [...prev, { message: "✅ Files uploaded successfully.", type: "success", timestamp: new Date().toISOString() }]);
             }
 
             await postMessage(message, postType, uploadedAttachments);
-            setLogs(prev => [...prev, { message: "✅ Job accepted by backend.", type: "success", timestamp: new Date().toISOString() }]);
             setFiles([]); // Clear files after success
-            setMessage(""); // Optional: clear message too? User might want to keep it. Let's keep it for now or clear it? 
-            // Usually we clear it. But let's stick to previous behavior for message (it wasn't cleared before).
-            // Wait, looking at previous code: `setMessage` was NOT called in `handlePost`.
-            // So I won't clear it either.
+            // setMessage(""); // Keeping message as per previous logic
         } catch (err) {
             setLogs(prev => [...prev, { message: `❌ Error: ${err.message}`, type: "error", timestamp: new Date().toISOString() }]);
         } finally {
