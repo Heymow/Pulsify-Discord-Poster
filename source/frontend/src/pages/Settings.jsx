@@ -148,7 +148,9 @@ const Settings = () => {
 
                         <div className="mt-6 p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/10 text-xs text-yellow-500/70 text-center leading-relaxed">
                             <p className="font-bold mb-1">⚠️ DISCLAIMER</p>
-                            Automating user accounts is against Discord's Terms of Service. Use at your own risk.
+                            Automating user accounts is against Discord's Terms of Service.
+                            <br />
+                            Use at your own risk.
                             <br />
                             However, this tool has been running safely for <span className="text-yellow-400 font-bold">over 8 months</span>.
                         </div>
