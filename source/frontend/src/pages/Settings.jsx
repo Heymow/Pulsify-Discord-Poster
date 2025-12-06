@@ -180,8 +180,9 @@ const Settings = () => {
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">API Key</label>
                             <div className="flex gap-2">
                                 <input
-                                    type="password"
-                                    autoComplete="new-password"
+                                    type="text"
+                                    autoComplete="off"
+                                    style={{ WebkitTextSecurity: 'disc' }}
                                     value={brainKey}
                                     onChange={(e) => setBrainKey(e.target.value)}
                                     placeholder="Enter API Key"
