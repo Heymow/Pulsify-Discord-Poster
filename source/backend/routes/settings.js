@@ -6,7 +6,6 @@ const settingsService = require('../services/settingsService');
 router.get('/', (req, res, next) => {
   try {
     const key = settingsService.getBrainApiKey();
-    const discordId = settingsService.getDiscordPosterId();
     
     // Return masked key for security
     let display = '';
@@ -18,7 +17,6 @@ router.get('/', (req, res, next) => {
 
     res.json({
       brainApiKey: display,
-      discordPosterId: discordId,
       isSet: !!key
     });
   } catch (err) {
@@ -28,13 +26,10 @@ router.get('/', (req, res, next) => {
 
 // Update settings
 router.post('/', (req, res, next) => {
-  const { brainApiKey, discordPosterId } = req.body;
+  const { brainApiKey } = req.body;
   try {
     if (typeof brainApiKey === 'string') {
         settingsService.setBrainApiKey(brainApiKey.trim());
-    }
-    if (typeof discordPosterId === 'string') {
-        settingsService.setDiscordPosterId(discordPosterId.trim());
     }
     res.json({ success: true, message: 'Settings updated' });
   } catch (err) {

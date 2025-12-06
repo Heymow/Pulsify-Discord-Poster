@@ -79,14 +79,6 @@ class DiscordService {
         logger.warn(`Failed to extract User ID from session: ${err.message}`);
     }
 
-    // Fallback to settings
-    const settingsService = require("./settingsService");
-    const settingsId = settingsService.getDiscordPosterId();
-    if (settingsId && settingsId !== 'ANONYMOUS_USER') {
-         this._cachedUserId = settingsId;
-         return settingsId;
-    }
-
     return "ANONYMOUS_USER";
   }
 

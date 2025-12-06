@@ -43,14 +43,6 @@ class SettingsService {
   setBrainApiKey(key) {
     this.saveSettings({ brainApiKey: key });
   }
-
-  getDiscordPosterId() {
-    return this.settings.discordPosterId || process.env.DISCORD_POSTER_ID || 'ANONYMOUS_USER';
-  }
-
-  setDiscordPosterId(id) {
-    this.saveSettings({ discordPosterId: id });
-  }
 }
 
 module.exports = new SettingsService();
