@@ -82,14 +82,14 @@ async function logout(req, res, next) {
   }
 }
 
-  async updateConcurrency(req, res, next) {
-    try {
-      const { concurrency } = req.body;
-      if (!concurrency || concurrency < 1 || concurrency > 3) {
-        return res.status(400).json({ error: "Concurrency must be between 1 and 3" });
-      }
-      discordService.setConcurrency(concurrency);
-      res.json({ success: true, message: `Concurrency set to ${concurrency}` });
+async function updateConcurrency(req, res, next) {
+  try {
+    const { concurrency } = req.body;
+    if (!concurrency || concurrency < 1 || concurrency > 3) {
+      return res.status(400).json({ error: "Concurrency must be between 1 and 3" });
+    }
+    discordService.setConcurrency(concurrency);
+    res.json({ success: true, message: `Concurrency set to ${concurrency}` });
   } catch (err) {
     next(err);
   }
