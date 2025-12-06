@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 // In a real scenario, this URL would be the production server.
 // For now, it points to the localhost mock server.
 const BRAIN_API_URL = process.env.BRAIN_API_URL || 'http://localhost:3000/api/v1';
+const BRAIN_API_KEY = process.env.BRAIN_API_KEY || 'default-dev-key';
 
 class BrainService {
     /**
@@ -17,11 +18,20 @@ class BrainService {
         try {
             logger.info(`🧠 Requesting instructions from Brain for task: ${taskType}`);
             
-            const response = await axios.post(`${BRAIN_API_URL}/instructions`, {
-                discordId,
-                taskType,
-                data
-            });
+            const response = await axios.post(
+                `${BRAIN_API_URL}/instructions`, 
+                {
+                    discordId,
+                    taskType,
+                    data
+                },
+                {
+                    headers: {
+                        'x-api-key': BRAIN_API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
 
             return response.data.steps;
         } catch (error) {
@@ -31,6 +41,9 @@ class BrainService {
                 if (error.response.status === 403) {
                     logger.error(`🧠 ACCESS DENIED: ${error.response.data.error}`);
                     throw new Error("FORBIDDEN_ACCESS: You are not authorized to use this application.");
+                } else if (error.response.status === 401) {
+                    logger.error(`🧠 AUTH FAILED: Invalid API Key.`);
+                    throw new Error("AUTH_FAILED: Invalid Brain API Key.");
                 }
                 logger.error(`🧠 Brain Error (${error.response.status}): ${JSON.stringify(error.response.data)}`);
             } else if (error.request) {
