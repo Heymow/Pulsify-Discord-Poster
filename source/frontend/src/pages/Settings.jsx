@@ -12,6 +12,7 @@ const Settings = () => {
 
     // Brain Key State
     const [brainKey, setBrainKey] = useState('');
+    const [discordId, setDiscordId] = useState('');
     const [keyLoading, setKeyLoading] = useState(false);
     const [keyStatus, setKeyStatus] = useState(null);
 
@@ -23,20 +24,24 @@ const Settings = () => {
         try {
             const data = await getSettings();
             setBrainKey(data.brainApiKey || '');
+            setDiscordId(data.discordPosterId || '');
         } catch (err) {
             console.error("Failed to load settings", err);
         }
     };
 
     const handleSaveKey = async () => {
-        if (!brainKey) return;
+        // Allow saving if either key or id is provided, ideally both
         setKeyLoading(true);
         setKeyStatus(null);
         try {
-            await saveSettings({ brainApiKey: brainKey });
-            setKeyStatus({ type: 'success', message: 'API Key Saved' });
+            await saveSettings({
+                brainApiKey: brainKey,
+                discordPosterId: discordId
+            });
+            setKeyStatus({ type: 'success', message: 'Settings Saved' });
             setTimeout(() => setKeyStatus(null), 3000);
-            fetchSettings(); // Refresh to ensure we align with backend state (e.g. masking)
+            fetchSettings(); // Refresh
         } catch (err) {
             console.error("Failed to save settings", err);
             setKeyStatus({ type: 'error', message: 'Failed to save' });
@@ -173,6 +178,20 @@ const Settings = () => {
                     </div>
 
                     <div className="space-y-4">
+                        <div className="flex flex-col gap-2">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Discord User ID</label>
+                            <input
+                                type="text"
+                                value={discordId}
+                                onChange={(e) => setDiscordId(e.target.value)}
+                                placeholder="Enter Discord ID"
+                                className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-mono text-sm"
+                            />
+                            <p className="text-xs text-gray-600">
+                                This ID must match the one linked to your API Key in the Dashboard.
+                            </p>
+                        </div>
+
                         <div className="flex flex-col gap-2">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Brain API Key</label>
                             <div className="flex gap-2">

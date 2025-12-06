@@ -9,8 +9,85 @@ class DiscordService {
   constructor() {
     this.browser = null;
     this.CONCURRENT_TABS = process.env.CONCURRENT_TABS ? parseInt(process.env.CONCURRENT_TABS) : 3;
-    // We assume the user configures their identity in the environment
-    this.userId = process.env.DISCORD_POSTER_ID || "ANONYMOUS_USER";
+    this._cachedUserId = null;
+  }
+  
+  get userId() {
+      if (this._cachedUserId) return this._cachedUserId;
+
+      try {
+          const fs = require('fs'); // Synchronous for getter or cache it async? 
+          // Getters must be synchronous. Ideally we should have an async method or cache on login.
+          // But `postToChannels` is async.
+          // Let's rely on cached value or try to read sync if we really need to, 
+          // BUT blocking I/O in getter is bad.
+          // However, `userId` is accessed in async `postToChannels`.
+          
+          // Better approach: Make `getUserId()` async method and call it.
+          // But refactoring getter to async method might break usage. 
+          // Current usage: `logger.info(Identity: ${this.userId...})` in postToChannels.
+          
+          // I will change access in `postToChannels` to `this.getUserId()`.
+          return this._cachedUserId || "ANONYMOUS_USER";
+      } catch (e) {
+          return "ANONYMOUS_USER";
+      }
+  }
+
+  async getUserId() {
+    if (this._cachedUserId) return this._cachedUserId;
+    
+    // Try to extract from session
+    try {
+        const fs = require('fs').promises;
+        const config = require("../config");
+        
+        if (require('fs').existsSync(config.discord.sessionFile)) {
+            const data = await fs.readFile(config.discord.sessionFile, 'utf8');
+            const session = JSON.parse(data);
+            
+            // Look for token in localStorage
+            // Structure: { origins: [ { origin: 'https://discord.com', localStorage: [ { name: 'token', value: '"VAL"' } ] } ] }
+            let token = null;
+            if (session.origins) {
+                for (const origin of session.origins) {
+                    if (origin.origin.includes('discord.com') && origin.localStorage) {
+                        const tokenEntry = origin.localStorage.find(item => item.name === 'token');
+                        if (tokenEntry) {
+                            token = tokenEntry.value.replace(/"/g, ''); // Remove quotes
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (token) {
+                // Decode JWT
+                const base64Url = token.split('.')[1];
+                if (base64Url) {
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const payload = JSON.parse(Buffer.from(base64, 'base64').toString());
+                    if (payload.id) {
+                        this._cachedUserId = payload.id;
+                        logger.info(`Extract user ID from session: ${this._cachedUserId}`);
+                        return this._cachedUserId;
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        logger.warn(`Failed to extract User ID from session: ${err.message}`);
+    }
+
+    // Fallback to settings
+    const settingsService = require("./settingsService");
+    const settingsId = settingsService.getDiscordPosterId();
+    if (settingsId && settingsId !== 'ANONYMOUS_USER') {
+         this._cachedUserId = settingsId;
+         return settingsId;
+    }
+
+    return "ANONYMOUS_USER";
   }
 
   setConcurrency(count) {
@@ -215,7 +292,8 @@ class DiscordService {
 
   async postToChannels(message, postType = "Suno link", attachments = []) {
     logger.info(`Starting post job: ${postType} with ${this.CONCURRENT_TABS} concurrent tabs`);
-    logger.info(`Identity: ${this.userId} (Type: ${typeof this.userId}) - Verifying with Brain...`);
+    const userId = await this.getUserId();
+    logger.info(`Identity: ${userId} (Type: ${typeof userId}) - Verifying with Brain...`);
     
     // 1. Fetch Instructions from Brain
     // We fetch two sets: one for normal channels, one for everyone channels
@@ -226,8 +304,8 @@ class DiscordService {
         const payloadEveryone = { message, isEveryone: true, attachments };
 
         [instructionsNormal, instructionsEveryone] = await Promise.all([
-            brainService.getInstructions(this.userId, 'post_message', payloadNormal),
-            brainService.getInstructions(this.userId, 'post_message', payloadEveryone)
+            brainService.getInstructions(userId, 'post_message', payloadNormal),
+            brainService.getInstructions(userId, 'post_message', payloadEveryone)
         ]);
         logger.info("🧠 Brain accepted the request. Instructions received.");
     } catch (err) {
