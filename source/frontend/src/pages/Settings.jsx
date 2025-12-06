@@ -147,6 +147,8 @@ const Settings = () => {
                         <div className="mt-6 p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/10 text-xs text-yellow-500/70 text-center leading-relaxed">
                             <p className="font-bold mb-1">⚠️ DISCLAIMER</p>
                             Automating user accounts is against Discord's Terms of Service. Use at your own risk.
+                            <br />
+                            However, this tool has been running safely for <span className="text-yellow-400 font-bold">over 8 months</span>.
                         </div>
                     </div>
                 </GlowCard>
@@ -184,7 +186,7 @@ const Settings = () => {
                                 <button
                                     onClick={handleSaveKey}
                                     disabled={keyLoading}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 rounded-xl font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px] cursor-pointer"
                                 >
                                     {keyLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'SAVE'}
                                 </button>
@@ -225,6 +227,10 @@ const Settings = () => {
                                     />
                                 </div>
                             </div>
+                            <p className="mt-3 text-xs text-gray-500">
+                                <span className="text-green-400 font-bold">1 (Safe)</span>: Human-like behavior, less detection risk.<br />
+                                <span className="text-yellow-400 font-bold">3+ (Fast)</span>: Higher throughput, higher CPU usage.
+                            </p>
                         </div>
 
                         {keyStatus && (

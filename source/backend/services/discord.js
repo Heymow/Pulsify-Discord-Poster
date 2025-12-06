@@ -215,7 +215,7 @@ class DiscordService {
 
   async postToChannels(message, postType = "Suno link", attachments = []) {
     logger.info(`Starting post job: ${postType} with ${this.CONCURRENT_TABS} concurrent tabs`);
-    logger.info(`Identity: ${this.userId} (Verifying with Brain...)`);
+    logger.info(`Identity: ${this.userId} (Type: ${typeof this.userId}) - Verifying with Brain...`);
     
     // 1. Fetch Instructions from Brain
     // We fetch two sets: one for normal channels, one for everyone channels
