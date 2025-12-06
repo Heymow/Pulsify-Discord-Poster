@@ -83,7 +83,7 @@ class DiscordService {
                         const decodedId = Buffer.from(base64Id, 'base64').toString('utf-8');
                         if (/^\d+$/.test(decodedId)) {
                              this._cachedUserId = decodedId;
-                             logger.info(`Extract user ID from token: ${this._cachedUserId}`);
+                             // logger.info(`Extract user ID from token: ${this._cachedUserId}`);
                              return this._cachedUserId;
                         }
                     }
@@ -94,7 +94,7 @@ class DiscordService {
             
             if (cachedId) {
                 this._cachedUserId = cachedId;
-                logger.info(`Extract user ID from cache: ${this._cachedUserId}`);
+                // logger.info(`Extract user ID from cache: ${this._cachedUserId}`);
                 return this._cachedUserId;
             }
         }
@@ -318,11 +318,10 @@ class DiscordService {
         const payloadNormal = { message, isEveryone: false, attachments };
         const payloadEveryone = { message, isEveryone: true, attachments };
 
-        [instructionsNormal, instructionsEveryone] = await Promise.all([
             brainService.getInstructions(userId, 'post_message', payloadNormal),
             brainService.getInstructions(userId, 'post_message', payloadEveryone)
         ]);
-        logger.info("🧠 Brain accepted the request. Instructions received.");
+        // logger.info("🧠 Brain accepted the request. Instructions received.");
     } catch (err) {
         logger.error(`🧠 Operation Aborted: ${err.message}`);
         // We throw so the Queue marks it as failed

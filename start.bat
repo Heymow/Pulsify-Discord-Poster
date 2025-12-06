@@ -58,12 +58,17 @@ if not exist "source\frontend\node_modules" (
     exit
 )
 
-start "Discord Poster - Backend" cmd /k "set "PATH=%NPM_PATH%;%PATH%" && cd source\backend && npm run dev"
+echo Starting Backend...
+start /b cmd /c "set "PATH=%NPM_PATH%;%PATH%" && cd source\backend && npm run dev"
 timeout /t 5 /nobreak > nul
-start "Discord Poster - Frontend" cmd /k "set "PATH=%NPM_PATH%;%PATH%" && cd source\frontend && npm run dev"
 
-echo Servers launched in background windows.
+echo Starting Frontend...
+start /b cmd /c "set "PATH=%NPM_PATH%;%PATH%" && cd source\frontend && npm run dev"
+
+echo.
+echo Servers launched in THIS terminal.
+echo Press Ctrl+C to stop all.
 echo.
 timeout /t 5 /nobreak > nul
 start http://localhost:5173
-exit
+exit /b

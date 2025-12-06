@@ -47,7 +47,7 @@ class QueueService {
     };
     this.queue.push(job);
     this.saveQueue();
-    logger.info(`Job ${job.id} added to queue. Queue size: ${this.queue.length}`);
+    // logger.info(`Job ${job.id} added to queue. Queue size: ${this.queue.length}`);
     this.processQueue();
     return job.id;
   }
@@ -60,7 +60,7 @@ class QueueService {
     
     while (this.queue.length > 0) {
       const job = this.queue[0]; // Peek
-      logger.info(`Processing job ${job.id}: ${job.type}`);
+      // logger.debug(`Processing job ${job.id}: ${job.type}`);
       
       try {
         if (job.type === "discord_post") {
@@ -70,7 +70,7 @@ class QueueService {
         // Remove job only after success
         this.queue.shift();
         this.saveQueue();
-        logger.info(`Job ${job.id} completed and removed from queue.`);
+        // logger.debug(`Job ${job.id} completed and removed from queue.`);
         
       } catch (err) {
         logger.error(`Job ${job.id} failed: ${err.message}`);
@@ -85,7 +85,7 @@ class QueueService {
             try {
               if (fs.existsSync(file.path)) {
                 fs.unlinkSync(file.path);
-                logger.info(`Deleted attachment: ${file.path}`);
+                // logger.debug(`Deleted attachment: ${file.path}`);
               }
             } catch (cleanupErr) {
               logger.error(`Failed to delete attachment ${file.path}: ${cleanupErr.message}`);
@@ -96,7 +96,7 @@ class QueueService {
     }
 
     this.isProcessing = false;
-    logger.info("Queue processing complete.");
+    // logger.debug("Queue processing complete.");
   }
 }
 
